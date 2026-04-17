@@ -47,8 +47,8 @@
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
             padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
             margin-bottom: 32px;
             box-shadow: var(--shadow-sm);
@@ -65,6 +65,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-self: start;
         }
         
         .nav-brand span {
@@ -79,6 +80,8 @@
             border-radius: 12px;
             border: 1px solid var(--border-color);
             gap: 4px;
+            grid-column: 2;
+            justify-self: center;
         }
 
         .tab-btn {
@@ -504,7 +507,7 @@
         @media (max-width: 1150px) {
             .main-layout { flex-direction: column; align-items: center; }
             .left-panel, .right-panel { flex: 1; width: 100%; max-width: 750px; }
-            .top-navbar { flex-direction: column; gap: 16px; }
+            .top-navbar { display: flex; flex-direction: column; gap: 16px; align-items: center; }
         }
         @media (max-width: 600px) {
             .input-row { flex-direction: column; gap: 0; }
