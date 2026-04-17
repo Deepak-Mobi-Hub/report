@@ -232,7 +232,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 16px; /* Increased to 16px to prevent iOS auto-zoom on mobile */
             color: var(--text-main);
             transition: all 0.2s ease;
         }
@@ -249,7 +249,7 @@
             font-size: 18px !important; /* Larger font */
             font-weight: 700; /* Bolder text */
             text-align: center;
-            padding: 12px 10px !important; /* More padding inside */
+            padding: 12px 6px !important; /* Adjusted padding for mobile fit */
             min-height: 46px; /* Ensures the box is taller */
             width: 100%;
         }
@@ -506,16 +506,38 @@
         /* Responsive */
         @media (max-width: 1150px) {
             .main-layout { flex-direction: column; align-items: center; }
-            .left-panel, .right-panel { flex: 1; width: 100%; max-width: 750px; }
+            .left-panel, .right-panel { flex: 1; width: 100%; max-width: 100%; } /* Changed max-width to 100% for full mobile width */
             .top-navbar { display: flex; flex-direction: column; gap: 16px; align-items: center; }
         }
         @media (max-width: 600px) {
-            .input-row { flex-direction: column; gap: 0; }
-            .btn-group { flex-direction: column; width: 100%; }
-            .btn { width: 100%; }
-            .postcard { width: 100%; padding: 24px; min-width: auto; }
-            .controls-bar { flex-direction: column; gap: 16px; align-items: stretch; }
-            .meta-info p { flex-direction: column; gap: 2px; text-align: left;}
+            body { padding-bottom: 24px; }
+            .top-navbar { padding: 16px; position: relative; gap: 16px; }
+            .tabs-container { width: 100%; justify-content: space-between; overflow-x: auto; padding: 6px; }
+            .tab-btn { flex: 1; text-align: center; justify-content: center; padding: 10px 8px; font-size: 13px; white-space: nowrap; }
+            .main-layout { padding: 0 12px; gap: 20px; }
+            .card { padding: 16px; border-radius: 12px; }
+            .card-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+            .card-header > div { width: 100%; justify-content: space-between; }
+            .input-row { flex-direction: column; gap: 12px; }
+            
+            /* Table adjustments for very small screens */
+            th, td { padding: 10px 4px; }
+            .input-intensity { font-size: 16px !important; padding: 10px 2px !important; }
+            select.input-status { padding: 10px 4px; font-size: 14px; }
+            
+            .btn-group { flex-direction: column; width: 100%; gap: 12px; }
+            .btn { width: 100%; padding: 14px 20px; font-size: 15px; } /* Larger touch targets */
+            
+            .postcard-wrapper { justify-content: flex-start; padding-bottom: 12px; }
+            .postcard { width: 100%; padding: 24px 16px; min-width: 420px; border-radius: 16px; } /* Slightly narrower min-width, adjusted padding */
+            .brand-name { font-size: 24px; }
+            .postcard-header { flex-direction: column; gap: 16px; }
+            .meta-info { text-align: left; width: 100%; box-sizing: border-box; }
+            .meta-info p { flex-direction: row; justify-content: space-between; }
+            
+            .stats-grid { flex-direction: column; gap: 12px; } /* Stack stats on mobile */
+            .controls-bar { flex-direction: column; gap: 16px; align-items: stretch; padding: 16px; }
+            .controls-bar > div:first-child { justify-content: space-between; width: 100%; }
         }
     </style>
 </head>
