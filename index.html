@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobi Hub - Daily Report Generator</title>
+    <!-- html2canvas library for PNG export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            /* Modern Color Palette */
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --focus-ring: rgba(59, 130, 246, 0.3);
+            
+            --done-bg: #d1fae5;
+            --done-text: #065f46;
+            --pending-bg: #fef3c7;
+            --pending-text: #92400e;
+            --progress-bg: #dbeafe;
+            --progress-text: #1e40af;
+            
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0; /* Changed to accommodate top nav */
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Navigation Bar */
+        .top-navbar {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-brand span {
+            color: var(--primary-color);
+        }
+
+        /* Tab Navigation - Segmented Control Style */
+        .tabs-container {
+            display: flex;
+            background-color: #f8fafc;
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            gap: 4px;
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-main);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 32px;
+            max-width: 1500px;
+            margin: 0 auto;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0 24px;
+        }
+
+        .left-panel {
+            flex: 0 0 460px; /* Refined width */
+            width: 460px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 0;
+            max-width: 750px;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .card-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        /* Profile & Input Group Styles */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Input Styles */
+        input[type="text"], input[type="email"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select {
+            width: 100%;
+            padding: 10px 14px;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            background-color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+        
+        .input-intensity {
+            font-size: 15px !important;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        /* Button Styles */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        
+        .btn-danger {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background-color: #fecaca;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-done { background-color: var(--done-bg); color: var(--done-text); }
+        .badge-pending { background-color: var(--pending-bg); color: var(--pending-text); }
+        .badge-progress { background-color: var(--progress-bg); color: var(--progress-text); }
+
+        /* Report Postcard Styles */
+        .postcard-wrapper {
+            overflow-x: auto;
+            padding: 0 0 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .postcard {
+            width: 100%; 
+            min-width: 480px;
+            max-width: 750px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px; /* Slightly rounder for premium feel */
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            margin: 0;
+            border: 1px solid #f1f5f9;
+        }
+
+        .postcard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+        }
+
+        .meta-info {
+            text-align: right;
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-info p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .meta-info strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .report-table th {
+            background-color: transparent;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 12px;
+            padding-bottom: 12px;
+        }
+
+        .report-table td {
+            font-size: 14px;
+            padding: 14px 8px;
+        }
+
+        .row-done td {
+            background-color: rgba(59, 130, 246, 0.03); /* Extremely subtle blue tint */
+        }
+        .row-done td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .row-done td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+        .task-name-display {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .auto-save-indicator {
+            font-size: 12px;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            font-weight: 600;
+            transition: opacity 0.3s;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        /* Matrix Table Specifics (Weekly Report) */
+        .matrix-table th, .matrix-table td {
+            padding: 12px 6px;
+            text-align: center;
+        }
+        .matrix-table th:first-child, .matrix-table td:first-child {
+            text-align: left;
+        }
+        .matrix-check {
+            color: #10b981;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1150px) {
+            .main-layout { flex-direction: column; align-items: center; }
+            .left-panel, .right-panel { flex: 1; width: 100%; max-width: 750px; }
+            .top-navbar { flex-direction: column; gap: 16px; }
+        }
+        @media (max-width: 600px) {
+            .input-row { flex-direction: column; gap: 0; }
+            .btn-group { flex-direction: column; width: 100%; }
+            .btn { width: 100%; }
+            .postcard { width: 100%; padding: 24px; min-width: auto; }
+            .controls-bar { flex-direction: column; gap: 16px; align-items: stretch; }
+            .meta-info p { flex-direction: column; gap: 2px; text-align: left;}
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<div class="top-navbar">
+    <div class="nav-brand">
+         <span>Mobi Hub</span> Dashboard
+    </div>
+    
+    <!-- Tabs Navigation inside Header -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('tab-daily', this)">📅 Daily</button>
+        <button class="tab-btn" onclick="switchTab('tab-weekly', this)">📊 Weekly</button>
+        <button class="tab-btn" onclick="switchTab('tab-monthly', this)">📈 Monthly</button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- DAILY TAB -->
+    <div id="tab-daily" class="tab-pane active">
+        <div class="main-layout">
+            
+            <!-- Left Column: Settings & Input Form -->
+            <div class="left-panel">
+                
+                <!-- NEW: Profile & Settings Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>👤 Reporter Profile</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+                            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logo-upload').click()">📷 Upload Logo</button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Display Name</label>
+                            <input type="text" id="profile-name" placeholder="e.g. Deepak" oninput="saveProfile()">
+                        </div>
+                        <div class="input-group">
+                            <label>Email Address (Optional)</label>
+                            <input type="email" id="profile-email" placeholder="e.g. deepak@mobihub.com" oninput="saveProfile()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Editing Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>📝 Daily Task List</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="date" id="daily-date-picker" onchange="loadFormForDate()" title="Change Date">
+                            <button class="btn btn-danger btn-sm" onclick="resetToDefault()">↺ Reset</button>
+                        </div>
+                    </div>
+
+                    <table id="task-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 8%; text-align: center;">Inc</th>
+                                <th style="width: 42%;">Task Name</th>
+                                <th style="width: 15%; text-align: center;">Int.</th>
+                                <th style="width: 35%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-tbody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        <button class="btn btn-secondary" onclick="addCustomTask()">➕ Add Row</button>
+                        <div id="save-indicator" class="auto-save-indicator">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Saved
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Generated Report Preview -->
+            <div class="right-panel">
+                <div class="controls-bar" style="margin-top: 0; padding: 12px 24px;">
+                    <span style="font-weight: 600; font-size: 14px; color: var(--text-muted);">Live Preview</span>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="copyImage('postcard-daily', this)">📋 Copy Image</button>
+                        <button class="btn btn-primary" onclick="downloadPNG('postcard-daily', 'DailyReport', this)">📥 Download PNG</button>
+                    </div>
+                </div>
+
+                <div class="postcard-wrapper">
+                    <div class="postcard" id="postcard-daily">
+                        <div class="postcard-header">
+                            <div class="brand">
+                                <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                                <h1 class="brand-name brand-text">MOBI HUB</h1>
+                                <span class="brand-subtitle">Daily Output Report</span>
+                            </div>
+                            <div class="meta-info">
+                                <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
+                                <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
+                                <p><span>Date:</span> <strong id="report-date-display"></strong></p>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-completed">0/0</div>
+                                <div class="stat-label">Tasks Completed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-intensity">0</div>
+                                <div class="stat-label">Score (Completed)</div>
+                            </div>
+                        </div>
+
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 55%;">Task Details</th>
+                                    <th style="width: 15%; text-align: center;">Int.</th>
+                                    <th style="width: 30%; text-align: right;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-tbody">
+                                <!-- Content injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEKLY TAB -->
+    <div id="tab-weekly" class="tab-pane">
+        <div class="controls-bar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <label style="font-weight: 600; color: var(--text-main);">Select Week:</label>
+                <input type="week" id="week-selector" onchange="renderWeekly()" style="width: auto;">
+            </div>
+            <div class="btn-group" style="margin-top: 0;">
+                <button class="btn btn-secondary" onclick="copyImage('postcard-weekly', this)">📋 Copy Image</button>
+                <button class="btn btn-primary" onclick="downloadPNG('postcard-weekly', 'WeeklyReport', this)">📥 Download PNG</button>
+            </div>
+        </div>
+
+        <div class="postcard-wrapper">
+            <div class="postcard" id="postcard-weekly">
+                <div class="postcard-header">
+                    <div class="brand">
+                        <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text">MOBI HUB</h1>
+                        <span class="brand-subtitle">Weekly Summary Report</span>
+                    </div>
+                    <div class="meta-info">
+                        <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
+                        <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
+                        <p><span>Period:</span> <strong id="weekly-date-range"></strong></p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="weekly-stat-completed">0</div>
+                        <div class="stat-label">Total Tasks (Mon-Fri)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="weekly-stat-intensity">0</div>
+                        <div class="stat-label">Total Weekly Score</div>
+                    </div>
+                </div>
+
+                <table class="report-table matrix-table">
+                    <thead>
+                        <tr id="weekly-table-header">
+                            <th style="width: 40%;">Task Details</th>
+                            <th style="width: 10%;">Mon</th>
+                            <th style="width: 10%;">Tue</th>
+                            <th style="width: 10%;">Wed</th>
+                            <th style="width: 10%;">Thu</th>
+                            <th style="width: 10%;">Fri</th>
+                            <th style="width: 10%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weekly-tbody">
+                        <!-- Content injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MONTHLY TAB -->
+    <div id="tab-monthly" class="tab-pane">
+        <div class="controls-bar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <label style="font-weight: 600; color: var(--text-main);">Select Month:</label>
+                <input type="month" id="month-selector" onchange="renderMonthly()" style="width: auto;">
+            </div>
+            <div class="btn-group" style="margin-top: 0;">
+                <button class="btn btn-secondary" onclick="copyImage('postcard-monthly', this)">📋 Copy Image</button>
+                <button class="btn btn-primary" onclick="downloadPNG('postcard-monthly', 'MonthlyReport', this)">📥 Download PNG</button>
+            </div>
+        </div>
+
+        <div class="postcard-wrapper">
+            <div class="postcard" id="postcard-monthly">
+                <div class="postcard-header">
+                    <div class="brand">
+                        <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text">MOBI HUB</h1>
+                        <span class="brand-subtitle">Monthly Overview Report</span>
+                    </div>
+                    <div class="meta-info">
+                        <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
+                        <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
+                        <p><span>Month:</span> <strong id="monthly-date-range"></strong></p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="monthly-stat-completed">0</div>
+                        <div class="stat-label">Total Tasks Completed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="monthly-stat-intensity">0</div>
+                        <div class="stat-label">Total Monthly Score</div>
+                    </div>
+                </div>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Week Period</th>
+                            <th style="width: 30%; text-align: center;">Tasks Completed</th>
+                            <th style="width: 30%; text-align: right;">Intensity Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-tbody">
+                        <!-- Content injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // System Utilities & Global State
+    const defaultTasks = [
+        "Refurbished and Back Market Pricing",
+        "LinkedIn Connection Request",
+        "LinkedIn Message",
+        "WhatsApp Message (New)",
+        "WTB/WTS Outreach",
+        "WhatsApp Group Blast",
+        "New Leads",
+        "Email Sent",
+        "New Clients updated on CRM"
+    ];
+
+    let saveTimeout;
+
+    // Helper: Get local YYYY-MM-DD
+    function getLocalDateString(dateObj) {
+        const d = new Date(dateObj);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    }
+
+    // Helper: Format date readable
+    function formatReadableDate(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        const d = new Date(parts[0], parts[1]-1, parts[2]);
+        return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    // Navigation Logic
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+
+        if (tabId === 'tab-weekly') renderWeekly();
+        if (tabId === 'tab-monthly') renderMonthly();
+    }
+
+    // Logo Logic
+    function handleLogoUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                localStorage.setItem('mobiHubLogo', dataUrl);
+                applyLogo(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function applyLogo(dataUrl) {
+        const logos = document.querySelectorAll('.brand-logo');
+        const texts = document.querySelectorAll('.brand-text');
+        
+        logos.forEach(logoImg => {
+            if (dataUrl) {
+                logoImg.src = dataUrl;
+                logoImg.style.display = 'block';
+            } else {
+                logoImg.style.display = 'none';
+                logoImg.removeAttribute('src');
+            }
+        });
+
+        texts.forEach(textLogo => {
+            if (dataUrl) {
+                textLogo.style.display = 'none';
+            } else {
+                textLogo.style.display = 'block';
+            }
+        });
+    }
+
+    // Profile Logic
+    function loadProfile() {
+        const profileStr = localStorage.getItem('mobiHubProfile');
+        let profile = { name: "Deepak", email: "" }; // default
+        
+        if (profileStr) {
+            profile = JSON.parse(profileStr);
+        }
+        
+        document.getElementById('profile-name').value = profile.name;
+        document.getElementById('profile-email').value = profile.email;
+        
+        updatePostcardProfileDisplays(profile.name, profile.email);
+    }
+
+    function saveProfile() {
+        const name = document.getElementById('profile-name').value.trim() || 'Deepak'; // fallback
+        const email = document.getElementById('profile-email').value.trim();
+        
+        localStorage.setItem('mobiHubProfile', JSON.stringify({ name, email }));
+        updatePostcardProfileDisplays(name, email);
+    }
+
+    function updatePostcardProfileDisplays(name, email) {
+        // Update Name
+        document.querySelectorAll('.display-name').forEach(el => el.innerText = name);
+        
+        // Update Email and conditionally hide the row if empty
+        document.querySelectorAll('.display-email').forEach(el => el.innerText = email);
+        document.querySelectorAll('.email-row').forEach(row => {
+            if (email) {
+                row.style.display = 'flex';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // ==========================================
+    // APP INITIALIZATION & DAILY TAB LOGIC
+    // ==========================================
+
+    function initApp() {
+        // Load Profile Data
+        loadProfile();
+
+        // Set date pickers defaults
+        const todayStr = getLocalDateString(new Date());
+        document.getElementById('daily-date-picker').value = todayStr;
+        
+        // Init Logo
+        const savedLogo = localStorage.getItem('mobiHubLogo');
+        if (savedLogo) applyLogo(savedLogo);
+
+        // Load today's form
+        loadFormForDate();
+        
+        // Init weekly picker to current week
+        const d = new Date();
+        const year = d.getFullYear();
+        const start = new Date(year, 0, 1);
+        const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
+        const weekNum = Math.ceil((d.getDay() + 1 + days) / 7);
+        document.getElementById('week-selector').value = `${year}-W${weekNum.toString().padStart(2, '0')}`;
+
+        // Init monthly picker to current month
+        document.getElementById('month-selector').value = todayStr.substring(0, 7);
+    }
+
+    function loadFormForDate() {
+        const selectedDate = document.getElementById('daily-date-picker').value;
+        const tbody = document.getElementById('task-tbody');
+        tbody.innerHTML = ''; 
+
+        let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
+        let dayData = history[selectedDate];
+
+        if (dayData && dayData.data) {
+            dayData.data.forEach((item) => {
+                let intVal = item.intensity !== undefined ? item.intensity : 1;
+                tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
+            });
+        } else {
+            // Legacy check or default load
+            const todayStr = getLocalDateString(new Date());
+            const legacyData = localStorage.getItem('mobiHubTasks');
+            
+            if (selectedDate === todayStr && legacyData) {
+                const tasks = JSON.parse(legacyData);
+                tasks.forEach((item) => {
+                    let intVal = item.intensity !== undefined ? item.intensity : 1;
+                    tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
+                });
+            } else {
+                defaultTasks.forEach((taskName) => {
+                    tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
+                });
+            }
+        }
+        
+        generateReport(false); 
+    }
+
+    function createRowHTML(taskName = '', status = 'Done', included = true, intensity = 1) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align: center; vertical-align: middle;">
+                <input type="checkbox" class="task-include" ${included ? 'checked' : ''} onchange="generateReport(true)">
+            </td>
+            <td>
+                <input type="text" class="input-task" value="${taskName}" placeholder="Task description..." oninput="generateReport(true)">
+            </td>
+            <td>
+                <input type="number" class="input-intensity" value="${intensity}" min="0" oninput="generateReport(true)">
+            </td>
+            <td>
+                <select class="input-status" onchange="generateReport(true)">
+                    <option value="Done" ${status === 'Done' ? 'selected' : ''}>Done</option>
+                    <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="In Progress" ${status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                </select>
+            </td>
+        `;
+        return tr;
+    }
+
+    function addCustomTask() {
+        const tbody = document.getElementById('task-tbody');
+        tbody.appendChild(createRowHTML('', 'Done', true, 1));
+        generateReport(true);
+    }
+
+    function resetToDefault() {
+        if(confirm("Are you sure you want to reset tasks for this date? (Your profile settings will not be affected).")) {
+            const selectedDate = document.getElementById('daily-date-picker').value;
+            let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
+            delete history[selectedDate];
+            localStorage.setItem('mobiHubHistory', JSON.stringify(history));
+            loadFormForDate();
+        }
+    }
+
+    function showSaveIndicator() {
+        const indicator = document.getElementById('save-indicator');
+        indicator.style.opacity = '1';
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 2000);
+    }
+
+    function generateReport(showSave = false) {
+        const rows = document.querySelectorAll('#task-tbody tr');
+        const reportTbody = document.getElementById('report-tbody');
+        const selectedDate = document.getElementById('daily-date-picker').value;
+        reportTbody.innerHTML = ''; 
+
+        let totalTasks = 0;
+        let completedTasks = 0;
+        let totalIntensityScore = 0;
+        let dataToSave = [];
+
+        rows.forEach(row => {
+            const isIncluded = row.querySelector('.task-include').checked;
+            const task = row.querySelector('.input-task').value;
+            const status = row.querySelector('.input-status').value;
+            const intensityInput = row.querySelector('.input-intensity');
+            
+            const trimmedTask = task.trim();
+            const isRefurbTask = trimmedTask === "Refurbished and Back Market Pricing";
+            
+            if (isRefurbTask) {
+                intensityInput.style.visibility = 'hidden';
+            } else {
+                intensityInput.style.visibility = 'visible';
+            }
+
+            const intensity = isRefurbTask ? 0 : (parseInt(intensityInput.value) || 0);
+
+            dataToSave.push({
+                task: task,
+                status: status,
+                included: isIncluded,
+                intensity: intensityInput.value 
+            });
+
+            if (!isIncluded || !trimmedTask) return; 
+            totalTasks++;
+
+            if (status === 'Done') {
+                completedTasks++;
+                totalIntensityScore += intensity;
+            }
+
+            let badgeClass = '';
+            let rowClass = '';
+            if (status === 'Done') { badgeClass = 'badge-done'; rowClass = 'row-done'; } 
+            else if (status === 'Pending') { badgeClass = 'badge-pending'; } 
+            else if (status === 'In Progress') { badgeClass = 'badge-progress'; }
+
+            const reportIntensityDisplay = isRefurbTask ? '-' : intensity;
+
+            const tr = document.createElement('tr');
+            if(rowClass) tr.classList.add(rowClass);
+            
+            tr.innerHTML = `
+                <td><div class="task-name-display">${trimmedTask}</div></td>
+                <td style="text-align: center; font-weight: 600;">${reportIntensityDisplay}</td>
+                <td style="text-align: right;">
+                    <span class="badge ${badgeClass}">${status}</span>
+                </td>
+            `;
+            reportTbody.appendChild(tr);
+        });
+
+        // Update UI
+        document.getElementById('report-date-display').innerText = formatReadableDate(selectedDate);
+        document.getElementById('stat-completed').innerText = `${completedTasks} / ${totalTasks}`;
+        document.getElementById('stat-intensity').innerText = totalIntensityScore;
+
+        // Auto-Save to Global History using selected date
+        let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
+        history[selectedDate] = {
+            date: selectedDate,
+            data: dataToSave,
+            stats: { total: totalTasks, completed: completedTasks, intensity: totalIntensityScore }
+        };
+        localStorage.setItem('mobiHubHistory', JSON.stringify(history));
+
+        if(showSave) showSaveIndicator();
+    }
+
+
+    // ==========================================
+    // WEEKLY TAB LOGIC
+    // ==========================================
+
+    function getDatesOfWeek(weekString) {
+        if (!weekString) return [];
+        const year = parseInt(weekString.substring(0, 4));
+        const week = parseInt(weekString.substring(6, 8));
+        
+        const simple = new Date(year, 0, 1 + (week - 1) * 7);
+        const dow = simple.getDay();
+        const ISOweekStart = simple;
+        if (dow <= 4)
+            ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+        else
+            ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+            
+        let dates = [];
+        for (let i = 0; i < 5; i++) { // Mon to Fri
+            let d = new Date(ISOweekStart);
+            d.setDate(ISOweekStart.getDate() + i);
+            dates.push(getLocalDateString(d));
+        }
+        return dates;
+    }
+
+    function renderWeekly() {
+        const weekVal = document.getElementById('week-selector').value;
+        if (!weekVal) return;
+        
+        const dates = getDatesOfWeek(weekVal); 
+        const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
+        
+        const thead = document.getElementById('weekly-table-header');
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        for (let i=0; i<5; i++) {
+            const dStr = dates[i];
+            const d = new Date(dStr.split('-')[0], dStr.split('-')[1]-1, dStr.split('-')[2]);
+            thead.children[i+1].innerText = `${dayNames[i]} (${d.getDate()})`;
+        }
+        
+        document.getElementById('weekly-date-range').innerText = `${formatReadableDate(dates[0])} to ${formatReadableDate(dates[4])}`;
+
+        let uniqueTasksMap = new Map(); 
+        dates.forEach(dStr => {
+            const dayRecord = history[dStr];
+            if (dayRecord && dayRecord.data) {
+                dayRecord.data.forEach(item => {
+                    if (item.included && item.task.trim() !== '') {
+                        const t = item.task.trim();
+                        uniqueTasksMap.set(t, t === "Refurbished and Back Market Pricing");
+                    }
+                });
+            }
+        });
+
+        const tbody = document.getElementById('weekly-tbody');
+        tbody.innerHTML = '';
+        
+        let grandTotalCompleted = 0;
+        let grandTotalIntensity = 0;
+
+        uniqueTasksMap.forEach((isRefurb, taskName) => {
+            const tr = document.createElement('tr');
+            let rowTotalInt = 0;
+            
+            let html = `<td><div class="task-name-display">${taskName}</div></td>`;
+            
+            dates.forEach(dStr => {
+                const dayRecord = history[dStr];
+                let cellHtml = '-';
+                if (dayRecord && dayRecord.data) {
+                    const taskItem = dayRecord.data.find(t => t.task.trim() === taskName && t.included);
+                    if (taskItem && taskItem.status === 'Done') {
+                        grandTotalCompleted++;
+                        if (isRefurb) {
+                            cellHtml = `<span class="matrix-check">✓</span>`;
+                        } else {
+                            const intVal = parseInt(taskItem.intensity) || 0;
+                            cellHtml = `<span class="matrix-check" style="color: var(--primary-color)">${intVal}</span>`;
+                            rowTotalInt += intVal;
+                            grandTotalIntensity += intVal;
+                        }
+                    }
+                }
+                html += `<td>${cellHtml}</td>`;
+            });
+            
+            html += `<td style="font-weight: 700; color: #0f172a;">${isRefurb ? '-' : rowTotalInt}</td>`;
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        });
+
+        if (uniqueTasksMap.size === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">No recorded tasks found for this week.</td></tr>`;
+        }
+
+        document.getElementById('weekly-stat-completed').innerText = grandTotalCompleted;
+        document.getElementById('weekly-stat-intensity').innerText = grandTotalIntensity;
+    }
+
+
+    // ==========================================
+    // MONTHLY TAB LOGIC
+    // ==========================================
+
+    function renderMonthly() {
+        const monthVal = document.getElementById('month-selector').value;
+        if (!monthVal) return;
+
+        const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
+        
+        const year = parseInt(monthVal.split('-')[0]);
+        const month = parseInt(monthVal.split('-')[1]) - 1; 
+        
+        const d = new Date(year, month, 1);
+        const monthName = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        document.getElementById('monthly-date-range').innerText = monthName;
+
+        let activeDates = Object.keys(history).filter(dateStr => dateStr.startsWith(monthVal)).sort();
+        
+        let grandCompleted = 0;
+        let grandIntensity = 0;
+
+        let weeksMap = {};
+        
+        activeDates.forEach(dateStr => {
+            const dateObj = new Date(dateStr.split('-')[0], dateStr.split('-')[1]-1, dateStr.split('-')[2]);
+            const start = new Date(dateObj.getFullYear(), 0, 1);
+            const days = Math.floor((dateObj - start) / (24 * 60 * 60 * 1000));
+            const weekNum = Math.ceil((dateObj.getDay() + 1 + days) / 7);
+            
+            const weekLabel = `Week ${weekNum}`;
+            if (!weeksMap[weekLabel]) {
+                weeksMap[weekLabel] = { count: 0, completed: 0, intensity: 0, dates: [] };
+            }
+            weeksMap[weekLabel].dates.push(dateStr);
+            weeksMap[weekLabel].completed += history[dateStr].stats.completed || 0;
+            weeksMap[weekLabel].intensity += history[dateStr].stats.intensity || 0;
+            
+            grandCompleted += history[dateStr].stats.completed || 0;
+            grandIntensity += history[dateStr].stats.intensity || 0;
+        });
+
+        const tbody = document.getElementById('monthly-tbody');
+        tbody.innerHTML = '';
+
+        const weekKeys = Object.keys(weeksMap).sort();
+        
+        weekKeys.forEach(wk => {
+            const wData = weeksMap[wk];
+            wData.dates.sort();
+            const minDate = formatReadableDate(wData.dates[0]).split(',')[1].trim();
+            const maxDate = formatReadableDate(wData.dates[wData.dates.length-1]).split(',')[1].trim();
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div style="font-weight: 700; color: #0f172a;">${wk}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${minDate} - ${maxDate}</div>
+                </td>
+                <td style="text-align: center; font-weight: 600; font-size: 16px;">${wData.completed}</td>
+                <td style="text-align: right; font-weight: 700; font-size: 16px; color: var(--primary-color);">${wData.intensity}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (weekKeys.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">No recorded data found for this month.</td></tr>`;
+        }
+
+        document.getElementById('monthly-stat-completed').innerText = grandCompleted;
+        document.getElementById('monthly-stat-intensity').innerText = grandIntensity;
+    }
+
+
+    // ==========================================
+    // EXPORT UTILITIES
+    // ==========================================
+
+    function downloadPNG(elementId, filenamePrefix, btnElement) {
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = '⏳ Generating...';
+        btnElement.disabled = true;
+
+        const postcard = document.getElementById(elementId);
+        
+        // Grab current name for file name
+        const userName = document.getElementById('profile-name').value.trim().replace(/[^a-zA-Z0-9]/g, '') || 'Deepak';
+
+        html2canvas(postcard, {
+            scale: 2, 
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.download = `MobiHub_${filenamePrefix}_${userName}_${dateStr}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+        }).catch(err => {
+            console.error('Error generating image:', err);
+            alert('Failed to generate image. Please try again.');
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+        });
+    }
+
+    function copyImage(elementId, btnElement) {
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = '⏳ Copying...';
+        btnElement.disabled = true;
+
+        const postcard = document.getElementById(elementId);
+
+        html2canvas(postcard, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            canvas.toBlob(blob => {
+                try {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(() => {
+                        btnElement.innerHTML = '✅ Copied!';
+                        setTimeout(() => { 
+                            btnElement.innerHTML = originalText; 
+                            btnElement.disabled = false; 
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Clipboard write error:', err);
+                        alert('Could not auto-copy. Your browser might block clipboard access. Please use Download instead.');
+                        btnElement.innerHTML = originalText;
+                        btnElement.disabled = false;
+                    });
+                } catch (err) {
+                    console.error('ClipboardItem not supported:', err);
+                    alert('Image copying is not fully supported in this browser. Please use the Download button.');
+                    btnElement.innerHTML = originalText;
+                    btnElement.disabled = false;
+                }
+            }, 'image/png');
+        }).catch(err => {
+            console.error('Error generating image for copy:', err);
+            alert('Failed to process image. Please try again.');
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+        });
+    }
+
+    // Initialize application on load
+    window.onload = initApp;
+</script>
+
+</body>
+</html>
