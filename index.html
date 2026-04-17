@@ -131,8 +131,9 @@
         }
 
         .left-panel {
-            flex: 0 0 460px; /* Refined width */
-            width: 460px;
+            flex: 1; /* Expand into available empty space */
+            min-width: 400px;
+            max-width: 680px; /* Increased max-width to allow expansion */
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -520,7 +521,7 @@
 <!-- Top Navigation -->
 <div class="top-navbar">
     <div class="nav-brand">
-        <span>Mobi Hub</span> Report
+        ✨ <span>Mobi Hub</span> Report
     </div>
     
     <!-- Tabs Navigation inside Header -->
@@ -575,9 +576,9 @@
                         <thead>
                             <tr>
                                 <th style="width: 8%; text-align: center;">Inc</th>
-                                <th style="width: 37%;">Task Name</th>
+                                <th style="width: 42%;">Task Name</th>
                                 <th style="width: 20%; text-align: center;">Int.</th>
-                                <th style="width: 35%;">Status</th>
+                                <th style="width: 30%;">Status</th>
                             </tr>
                         </thead>
                         <tbody id="task-tbody">
