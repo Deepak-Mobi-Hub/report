@@ -516,7 +516,7 @@
 <!-- Top Navigation -->
 <div class="top-navbar">
     <div class="nav-brand">
-         <span>Mobi Hub</span> Dashboard
+         <span>Mobi Hub</span> Report
     </div>
     
     <!-- Tabs Navigation inside Header -->
@@ -571,8 +571,8 @@
                         <thead>
                             <tr>
                                 <th style="width: 8%; text-align: center;">Inc</th>
-                                <th style="width: 42%;">Task Name</th>
-                                <th style="width: 15%; text-align: center;">Int.</th>
+                                <th style="width: 37%;">Task Name</th>
+                                <th style="width: 20%; text-align: center;">Int.</th>
                                 <th style="width: 35%;">Status</th>
                             </tr>
                         </thead>
@@ -605,8 +605,8 @@
                     <div class="postcard" id="postcard-daily">
                         <div class="postcard-header">
                             <div class="brand">
-                                <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                                <h1 class="brand-name brand-text">MOBI HUB</h1>
+                                <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                                <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
                                 <span class="brand-subtitle">Daily Output Report</span>
                             </div>
                             <div class="meta-info">
@@ -630,8 +630,8 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 55%;">Task Details</th>
-                                    <th style="width: 15%; text-align: center;">Int.</th>
+                                    <th style="width: 50%;">Task Details</th>
+                                    <th style="width: 20%; text-align: center;">Int.</th>
                                     <th style="width: 30%; text-align: right;">Status</th>
                                 </tr>
                             </thead>
@@ -662,8 +662,8 @@
             <div class="postcard" id="postcard-weekly">
                 <div class="postcard-header">
                     <div class="brand">
-                        <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                        <h1 class="brand-name brand-text">MOBI HUB</h1>
+                        <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
                         <span class="brand-subtitle">Weekly Summary Report</span>
                     </div>
                     <div class="meta-info">
@@ -721,8 +721,8 @@
             <div class="postcard" id="postcard-monthly">
                 <div class="postcard-header">
                     <div class="brand">
-                        <img class="brand-logo" style="max-height: 48px; display: none; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                        <h1 class="brand-name brand-text">MOBI HUB</h1>
+                        <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
                         <span class="brand-subtitle">Monthly Overview Report</span>
                     </div>
                     <div class="meta-info">
@@ -823,21 +823,12 @@
         const texts = document.querySelectorAll('.brand-text');
         
         logos.forEach(logoImg => {
-            if (dataUrl) {
-                logoImg.src = dataUrl;
-                logoImg.style.display = 'block';
-            } else {
-                logoImg.style.display = 'none';
-                logoImg.removeAttribute('src');
-            }
+            logoImg.src = dataUrl ? dataUrl : 'logo.png';
+            logoImg.style.display = 'block';
         });
 
         texts.forEach(textLogo => {
-            if (dataUrl) {
-                textLogo.style.display = 'none';
-            } else {
-                textLogo.style.display = 'block';
-            }
+            textLogo.style.display = 'none';
         });
     }
 
@@ -936,7 +927,7 @@
                 });
             } else {
                 defaultTasks.forEach((taskName) => {
-                    tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
+                    tbody.appendChild(createRowHTML(taskName, 'Pending', true, 1));
                 });
             }
         }
@@ -944,7 +935,7 @@
         generateReport(false); 
     }
 
-    function createRowHTML(taskName = '', status = 'Done', included = true, intensity = 1) {
+    function createRowHTML(taskName = '', status = 'Pending', included = true, intensity = 1) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;">
@@ -958,9 +949,9 @@
             </td>
             <td>
                 <select class="input-status" onchange="generateReport(true)">
-                    <option value="Done" ${status === 'Done' ? 'selected' : ''}>Done</option>
                     <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
                     <option value="In Progress" ${status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                    <option value="Done" ${status === 'Done' ? 'selected' : ''}>Done</option>
                 </select>
             </td>
         `;
@@ -969,7 +960,7 @@
 
     function addCustomTask() {
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML('', 'Done', true, 1));
+        tbody.appendChild(createRowHTML('', 'Pending', true, 1));
         generateReport(true);
     }
 
