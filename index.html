@@ -6,117 +6,67 @@
     <title>Mobi Hub - Daily Report Generator</title>
     <!-- html2canvas library for PNG export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- SortableJS library for Drag and Drop -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
-            /* Modern Color Palette */
-            --bg-color: #f1f5f9;
+            --bg-color: #f0f6ff;
             --card-bg: #ffffff;
-            --text-main: #0f172a;
+            --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --primary-color: #3b82f6;
-            --primary-hover: #2563eb;
-            --focus-ring: rgba(59, 130, 246, 0.3);
+            --primary-color: #2563eb;
             
-            --done-bg: #d1fae5;
-            --done-text: #065f46;
-            --pending-bg: #fef3c7;
-            --pending-text: #92400e;
+            --done-bg: #2563eb;
+            --done-text: #ffffff;
+            --pending-bg: #f1f5f9;
+            --pending-text: #64748b;
             --progress-bg: #dbeafe;
             --progress-text: #1e40af;
-            
-            --radius-md: 10px;
-            --radius-lg: 16px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 0; /* Changed to accommodate top nav */
+            padding: 20px;
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Navigation Bar */
-        .top-navbar {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 32px;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            margin-bottom: 32px;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-brand {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-self: start;
-        }
-        
-        .nav-brand span {
-            color: var(--primary-color);
-        }
-
-        /* Tab Navigation - Segmented Control Style */
+        /* Tab Navigation */
         .tabs-container {
             display: flex;
-            background-color: #f8fafc;
-            padding: 6px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            gap: 4px;
-            grid-column: 2;
-            justify-self: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
         .tab-btn {
-            padding: 8px 20px;
+            padding: 10px 24px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            border: none;
-            background: transparent;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
             color: var(--text-muted);
-            transition: all 0.2s ease-in-out;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: all 0.2s;
         }
 
         .tab-btn.active {
-            background: #ffffff;
-            color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
         }
 
         .tab-btn:hover:not(.active) {
-            color: var(--text-main);
+            background: #f8fafc;
         }
 
         .tab-pane {
             display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .tab-pane.active {
@@ -126,82 +76,59 @@
         .main-layout {
             display: flex;
             gap: 32px;
-            max-width: 1500px;
+            max-width: 1400px;
             margin: 0 auto;
             align-items: flex-start;
             justify-content: center;
-            padding: 0 24px;
         }
 
         .left-panel {
-            flex: 1; /* Expand into available empty space */
-            min-width: 400px;
-            max-width: 680px; /* Increased max-width to allow expansion */
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+            flex: 0 0 520px;
+            width: 520px;
         }
 
         .right-panel {
             flex: 1;
             min-width: 0;
-            max-width: 750px;
+            max-width: 700px; /* slightly wider to accommodate weekly matrix */
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         /* Card Styles */
         .card {
             background-color: var(--card-bg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             padding: 24px;
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            margin-bottom: 24px;
+            overflow-x: auto;
         }
 
-        .card-header {
-            font-size: 16px;
-            font-weight: 700;
+        h1, h2, h3 {
+            margin-top: 0;
             color: var(--text-main);
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
         }
 
-        /* Profile & Input Group Styles */
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 16px;
-        }
-
-        .input-row .input-group {
-            flex: 1;
+        .header-title {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #111827;
         }
 
         /* Table Styles */
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
         }
 
         th, td {
-            padding: 12px 10px;
+            padding: 10px 8px;
             text-align: left;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-color);
         }
 
         th {
@@ -209,49 +136,72 @@
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            font-size: 11px;
+            font-size: 12px;
             letter-spacing: 0.05em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
-        th:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        th:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        /* Drag and Drop Styles */
+        .drag-handle {
+            cursor: grab;
+            color: #cbd5e1;
+            font-size: 16px;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        
+        .drag-handle:hover {
+            color: var(--text-muted);
+        }
 
-        tr:hover td {
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
             background-color: #f8fafc;
+            border: 2px dashed var(--border-color);
+        }
+
+        /* Matrix Table Specifics (Weekly Report) */
+        .matrix-table th, .matrix-table td {
+            padding: 8px 6px;
+            text-align: center;
+        }
+        .matrix-table th:first-child, .matrix-table td:first-child {
+            text-align: left;
+        }
+        .matrix-table td {
+            font-size: 13px;
+        }
+        .matrix-check {
+            color: #10b981;
+            font-weight: bold;
         }
 
         /* Input Styles */
-        input[type="text"], input[type="email"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select {
+        input[type="text"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select, textarea {
             width: 100%;
-            padding: 10px 14px;
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             box-sizing: border-box;
             font-family: inherit;
-            font-size: 16px; /* Increased to 16px to prevent iOS auto-zoom on mobile */
+            font-size: 14px;
             color: var(--text-main);
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
-        input:focus, select:focus {
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
             outline: none;
-            background-color: #ffffff;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px var(--focus-ring);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
         
-        /* INCREASED INTENSITY BOX STYLING */
         .input-intensity {
-            font-size: 18px !important; /* Larger font */
-            font-weight: 700; /* Bolder text */
-            text-align: center;
-            padding: 12px 6px !important; /* Adjusted padding for mobile fit */
-            min-height: 46px; /* Ensures the box is taller */
-            width: 100%;
+            font-size: 16px !important;
+            font-weight: 600;
+            padding: 10px 8px !important;
         }
 
         input[type="checkbox"] {
@@ -259,79 +209,67 @@
             height: 18px;
             accent-color: var(--primary-color);
             cursor: pointer;
-            border-radius: 4px;
         }
 
         /* Button Styles */
         .btn-group {
             display: flex;
             gap: 12px;
+            margin-top: 24px;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 10px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
         }
 
         .btn:active {
-            transform: translateY(1px);
+            transform: scale(0.98);
         }
 
         .btn-primary {
             background-color: var(--primary-color);
             color: white;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
         }
         
         .btn-primary:hover {
-            background-color: var(--primary-hover);
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 6px 10px rgba(37, 99, 235, 0.3);
         }
 
         .btn-secondary {
             background-color: #ffffff;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
         }
 
         .btn-secondary:hover {
             background-color: #f8fafc;
-            border-color: #cbd5e1;
         }
         
         .btn-danger {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-
-        .btn-danger:hover {
-            background-color: #fecaca;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
+            background-color: #ef4444;
+            color: white;
+            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
         }
 
         /* Status Badges */
         .badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 600;
             text-align: center;
-            letter-spacing: 0.02em;
         }
 
         .badge-done { background-color: var(--done-bg); color: var(--done-text); }
@@ -349,23 +287,22 @@
         .postcard {
             width: 100%; 
             min-width: 480px;
-            max-width: 750px;
+            max-width: 650px;
             background: white;
-            padding: 40px;
-            border-radius: 20px; /* Slightly rounder for premium feel */
-            box-shadow: var(--shadow-lg);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             position: relative;
             margin: 0;
-            border: 1px solid #f1f5f9;
         }
 
         .postcard-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding-bottom: 24px;
-            margin-bottom: 24px;
-            border-bottom: 2px solid #f1f5f9;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .brand {
@@ -374,106 +311,87 @@
         }
 
         .brand-name {
-            font-size: 28px;
-            font-weight: 900;
-            color: #0f172a;
+            font-size: 24px;
+            font-weight: 800;
+            color: #111827;
             margin: 0;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
         }
 
         .brand-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--primary-color);
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 4px;
+            letter-spacing: 1px;
+            margin-top: 2px;
         }
 
         .meta-info {
             text-align: right;
-            background: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
         }
 
         .meta-info p {
-            margin: 4px 0;
+            margin: 2px 0;
             font-size: 13px;
             color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
         }
 
         .meta-info strong {
             color: var(--text-main);
-            font-weight: 700;
         }
 
         .stats-grid {
             display: flex;
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             flex: 1;
-            background: linear-gradient(145deg, #f8fafc, #ffffff);
+            background-color: #f8fafc;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             padding: 16px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 28px;
-            font-weight: 800;
+            font-size: 24px;
+            font-weight: bold;
             color: var(--primary-color);
             margin-bottom: 4px;
         }
 
         .stat-label {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .report-table th {
             background-color: transparent;
             border-bottom: 2px solid var(--border-color);
             color: var(--text-muted);
-            font-size: 12px;
-            padding-bottom: 12px;
-        }
-
-        .report-table td {
-            font-size: 14px;
-            padding: 14px 8px;
         }
 
         .row-done td {
-            background-color: rgba(59, 130, 246, 0.03); /* Extremely subtle blue tint */
+            background-color: rgba(37, 99, 235, 0.05);
         }
-        .row-done td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        .row-done td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
         .task-name-display {
-            font-weight: 600;
+            font-weight: 500;
             color: #1e293b;
         }
         
         .auto-save-indicator {
-            font-size: 12px;
-            color: #10b981;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            font-size: 13px;
+            color: var(--primary-color);
+            text-align: right;
+            margin-top: 12px;
             opacity: 0;
-            font-weight: 600;
+            font-weight: 500;
             transition: opacity 0.3s;
         }
 
@@ -483,125 +401,63 @@
             align-items: center;
             background: white;
             padding: 16px 24px;
-            border-radius: var(--radius-lg);
+            border-radius: 12px;
             margin-bottom: 24px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        /* Matrix Table Specifics (Weekly Report) */
-        .matrix-table th, .matrix-table td {
-            padding: 12px 6px;
-            text-align: center;
-        }
-        .matrix-table th:first-child, .matrix-table td:first-child {
-            text-align: left;
-        }
-        .matrix-check {
-            color: #10b981;
-            font-weight: 800;
-            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         /* Responsive */
-        @media (max-width: 1150px) {
+        @media (max-width: 1100px) {
             .main-layout { flex-direction: column; align-items: center; }
-            .left-panel, .right-panel { flex: 1; width: 100%; max-width: 100%; } /* Changed max-width to 100% for full mobile width */
-            .top-navbar { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+            .left-panel, .right-panel { flex: 1; width: 100%; max-width: 650px; }
         }
         @media (max-width: 600px) {
-            body { padding-bottom: 24px; }
-            .top-navbar { padding: 16px; position: relative; gap: 16px; }
-            .tabs-container { width: 100%; justify-content: space-between; overflow-x: auto; padding: 6px; }
-            .tab-btn { flex: 1; text-align: center; justify-content: center; padding: 10px 8px; font-size: 13px; white-space: nowrap; }
-            .main-layout { padding: 0 12px; gap: 20px; }
-            .card { padding: 16px; border-radius: 12px; }
-            .card-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-            .card-header > div { width: 100%; justify-content: space-between; }
-            .input-row { flex-direction: column; gap: 12px; }
-            
-            /* Table adjustments for very small screens */
-            th, td { padding: 10px 4px; }
-            .input-intensity { font-size: 16px !important; padding: 10px 2px !important; }
-            select.input-status { padding: 10px 4px; font-size: 14px; }
-            
-            .btn-group { flex-direction: column; width: 100%; gap: 12px; }
-            .btn { width: 100%; padding: 14px 20px; font-size: 15px; } /* Larger touch targets */
-            
-            .postcard-wrapper { justify-content: flex-start; padding-bottom: 12px; }
-            .postcard { width: 100%; padding: 24px 16px; min-width: 420px; border-radius: 16px; } /* Slightly narrower min-width, adjusted padding */
-            .brand-name { font-size: 24px; }
-            .postcard-header { flex-direction: column; gap: 16px; }
-            .meta-info { text-align: left; width: 100%; box-sizing: border-box; }
-            .meta-info p { flex-direction: row; justify-content: space-between; }
-            
-            .stats-grid { flex-direction: column; gap: 12px; } /* Stack stats on mobile */
-            .controls-bar { flex-direction: column; gap: 16px; align-items: stretch; padding: 16px; }
-            .controls-bar > div:first-child { justify-content: space-between; width: 100%; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; }
+            .postcard { width: 100%; padding: 20px; min-width: auto; }
+            .tabs-container { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
-<!-- Top Navigation -->
-<div class="top-navbar">
-    <div class="nav-brand">
-         <span>Mobi Hub</span> Report
-    </div>
-    
-    <!-- Tabs Navigation inside Header -->
-    <div class="tabs-container">
-        <button class="tab-btn active" onclick="switchTab('tab-daily', this)">📅 Daily</button>
-        <button class="tab-btn" onclick="switchTab('tab-weekly', this)">📊 Weekly</button>
-        <button class="tab-btn" onclick="switchTab('tab-monthly', this)">📈 Monthly</button>
-    </div>
-</div>
-
 <div class="container">
+    <h1 class="header-title">Mobi Hub Report Generator</h1>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('tab-daily', this)">Daily Report</button>
+        <button class="tab-btn" onclick="switchTab('tab-weekly', this)">Weekly Summary</button>
+        <button class="tab-btn" onclick="switchTab('tab-monthly', this)">Monthly Overview</button>
+    </div>
+
     <!-- DAILY TAB -->
     <div id="tab-daily" class="tab-pane active">
         <div class="main-layout">
-            
-            <!-- Left Column: Settings & Input Form -->
+            <!-- Left Column: Input Form -->
             <div class="left-panel">
-                
-                <!-- NEW: Profile & Settings Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span>👤 Reporter Profile</span>
-                        <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="card" id="input-section" style="padding: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-main);">Select & Edit Tasks</h2>
+                        <div style="display: flex; gap: 8px;">
                             <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
-                            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('logo-upload').click()">📷 Upload Logo</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('logo-upload').click()" style="font-size: 12px; padding: 6px 12px;">📷 Logo</button>
+                            <button class="btn btn-danger" onclick="resetToDefault()" style="font-size: 12px; padding: 6px 12px;">Reset</button>
                         </div>
                     </div>
                     
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label>Display Name</label>
-                            <input type="text" id="profile-name" placeholder="e.g. Deepak" oninput="saveProfile()">
-                        </div>
-                        <div class="input-group">
-                            <label>Email Address (Optional)</label>
-                            <input type="email" id="profile-email" placeholder="e.g. deepak@mobihub.com" oninput="saveProfile()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Task Editing Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <span>📝 Daily Task List</span>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <input type="date" id="daily-date-picker" onchange="loadFormForDate()" title="Change Date">
-                            <button class="btn btn-danger btn-sm" onclick="resetToDefault()">↺ Reset</button>
-                        </div>
+                    <!-- Allow selecting the date to back-edit history -->
+                    <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Editing Date:</label>
+                        <input type="date" id="daily-date-picker" onchange="loadFormForDate()" style="width: auto; padding: 6px 10px;">
                     </div>
 
                     <table id="task-table">
                         <thead>
                             <tr>
-                                <th style="width: 8%; text-align: center;">Inc</th>
-                                <th style="width: 42%;">Task Name</th>
+                                <th style="width: 5%; text-align: center;"></th>
+                                <th style="width: 5%; text-align: center;">✓</th>
+                                <th style="width: 40%;">Task</th>
                                 <th style="width: 20%; text-align: center;">Int.</th>
                                 <th style="width: 30%;">Status</th>
                             </tr>
@@ -611,38 +467,40 @@
                         </tbody>
                     </table>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                        <button class="btn btn-secondary" onclick="addCustomTask()">➕ Add Row</button>
-                        <div id="save-indicator" class="auto-save-indicator">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Saved
-                        </div>
+                    <div class="btn-group" style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="addCustomTask()" style="font-size: 15px; padding: 10px 20px; width: 100%;">➕ Add Custom Task</button>
                     </div>
+                    
+                    <div style="margin-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">Daily Summary / Notes:</label>
+                            <button class="btn btn-secondary" onclick="generateAIPrompt()" style="font-size: 11px; padding: 4px 10px; box-shadow: none;">✨ Create AI Prompt</button>
+                        </div>
+                        <textarea id="daily-notes-input" rows="3" style="resize: vertical;" placeholder="Enter the crux of today's report here..." oninput="generateReport(true)"></textarea>
+                    </div>
+
+                    <div id="save-indicator" class="auto-save-indicator">✓ Auto-saved to History</div>
                 </div>
             </div>
 
             <!-- Right Column: Generated Report Preview -->
             <div class="right-panel">
-                <div class="controls-bar" style="margin-top: 0; padding: 12px 24px;">
-                    <span style="font-weight: 600; font-size: 14px; color: var(--text-muted);">Live Preview</span>
-                    <div class="btn-group">
-                        <button class="btn btn-secondary" onclick="copyImage('postcard-daily', this)">📋 Copy Image</button>
-                        <button class="btn btn-primary" onclick="downloadPNG('postcard-daily', 'DailyReport', this)">📥 Download PNG</button>
-                    </div>
+                <div class="btn-group" style="margin-top: 0; margin-bottom: 24px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="copyImage('postcard-daily', this)">📋 Copy Image</button>
+                    <button class="btn btn-primary" onclick="downloadPNG('postcard-daily', 'DailyReport', this)">📥 Download PNG</button>
                 </div>
 
                 <div class="postcard-wrapper">
                     <div class="postcard" id="postcard-daily">
                         <div class="postcard-header">
                             <div class="brand">
-                                <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                                <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
+                                <img class="brand-logo" style="max-height: 44px; display: none; margin-bottom: 8px; max-width: 160px; object-fit: contain;" alt="Mobi Hub Logo">
+                                <h1 class="brand-name brand-text">MOBI HUB</h1>
                                 <span class="brand-subtitle">Daily Output Report</span>
                             </div>
                             <div class="meta-info">
-                                <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
-                                <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
-                                <p><span>Date:</span> <strong id="report-date-display"></strong></p>
+                                <p>Name: <strong>Deepak</strong></p>
+                                <p>Date: <strong id="report-date-display"></strong></p>
                             </div>
                         </div>
 
@@ -660,8 +518,8 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%;">Task Details</th>
-                                    <th style="width: 20%; text-align: center;">Int.</th>
+                                    <th style="width: 55%;">Task Details</th>
+                                    <th style="width: 15%; text-align: center;">Int.</th>
                                     <th style="width: 30%; text-align: right;">Status</th>
                                 </tr>
                             </thead>
@@ -669,6 +527,11 @@
                                 <!-- Content injected via JS -->
                             </tbody>
                         </table>
+
+                        <div id="report-notes-container" style="margin-top: 24px; display: none;">
+                            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; letter-spacing: 0.05em;">Summary / Notes</h3>
+                            <p id="report-notes-display" style="font-size: 14px; color: var(--text-main); white-space: pre-wrap; margin: 0; line-height: 1.6;"></p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -678,9 +541,9 @@
     <!-- WEEKLY TAB -->
     <div id="tab-weekly" class="tab-pane">
         <div class="controls-bar">
-            <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 <label style="font-weight: 600; color: var(--text-main);">Select Week:</label>
-                <input type="week" id="week-selector" onchange="renderWeekly()" style="width: auto;">
+                <input type="week" id="week-selector" onchange="renderWeekly()">
             </div>
             <div class="btn-group" style="margin-top: 0;">
                 <button class="btn btn-secondary" onclick="copyImage('postcard-weekly', this)">📋 Copy Image</button>
@@ -692,14 +555,13 @@
             <div class="postcard" id="postcard-weekly">
                 <div class="postcard-header">
                     <div class="brand">
-                        <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                        <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
+                        <img class="brand-logo" style="max-height: 44px; display: none; margin-bottom: 8px; max-width: 160px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text">MOBI HUB</h1>
                         <span class="brand-subtitle">Weekly Summary Report</span>
                     </div>
                     <div class="meta-info">
-                        <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
-                        <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
-                        <p><span>Period:</span> <strong id="weekly-date-range"></strong></p>
+                        <p>Name: <strong>Deepak</strong></p>
+                        <p>Week: <strong id="weekly-date-range"></strong></p>
                     </div>
                 </div>
 
@@ -737,9 +599,9 @@
     <!-- MONTHLY TAB -->
     <div id="tab-monthly" class="tab-pane">
         <div class="controls-bar">
-            <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 <label style="font-weight: 600; color: var(--text-main);">Select Month:</label>
-                <input type="month" id="month-selector" onchange="renderMonthly()" style="width: auto;">
+                <input type="month" id="month-selector" onchange="renderMonthly()">
             </div>
             <div class="btn-group" style="margin-top: 0;">
                 <button class="btn btn-secondary" onclick="copyImage('postcard-monthly', this)">📋 Copy Image</button>
@@ -751,14 +613,13 @@
             <div class="postcard" id="postcard-monthly">
                 <div class="postcard-header">
                     <div class="brand">
-                        <img class="brand-logo" src="logo.png" style="max-height: 48px; display: block; margin-bottom: 8px; max-width: 180px; object-fit: contain;" alt="Mobi Hub Logo">
-                        <h1 class="brand-name brand-text" style="display: none;">MOBI HUB</h1>
+                        <img class="brand-logo" style="max-height: 44px; display: none; margin-bottom: 8px; max-width: 160px; object-fit: contain;" alt="Mobi Hub Logo">
+                        <h1 class="brand-name brand-text">MOBI HUB</h1>
                         <span class="brand-subtitle">Monthly Overview Report</span>
                     </div>
                     <div class="meta-info">
-                        <p><span>Name:</span> <strong class="display-name">Deepak</strong></p>
-                        <p class="email-row" style="display: none;"><span>Email:</span> <strong class="display-email"></strong></p>
-                        <p><span>Month:</span> <strong id="monthly-date-range"></strong></p>
+                        <p>Name: <strong>Deepak</strong></p>
+                        <p>Month: <strong id="monthly-date-range"></strong></p>
                     </div>
                 </div>
 
@@ -791,6 +652,51 @@
 
 </div>
 
+<!-- Modal for Copy Image -->
+<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; padding: 16px; border-radius: 12px; max-width: 100%; max-height: 90%; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; gap: 20px;">
+            <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Right-click (or long-press) the image and select "Copy image"</h3>
+            <button onclick="closeImageModal()" class="btn btn-secondary" style="padding: 6px 16px;">Close</button>
+        </div>
+        <div style="overflow: auto; display: flex; justify-content: center; background: #f8fafc; border-radius: 8px; padding: 10px;">
+            <img id="modal-image-preview" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        </div>
+    </div>
+</div>
+
+<!-- Generic Message Modal -->
+<div id="message-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <p id="message-modal-text" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main);"></p>
+        <button onclick="closeMessageModal()" class="btn btn-primary">OK</button>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <p id="confirm-modal-text" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main);"></p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button onclick="closeConfirmModal(false)" class="btn btn-secondary">Cancel</button>
+            <button onclick="closeConfirmModal(true)" class="btn btn-danger">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- AI Prompt Modal -->
+<div id="ai-prompt-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; color: var(--text-main); font-size: 18px;">Generate Summary with AI</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Copy this prompt and paste it into ChatGPT, Gemini, or Claude to get a concise crux of your day.</p>
+        <textarea id="ai-prompt-text" rows="8" style="width: 100%; margin-bottom: 16px; font-family: monospace; font-size: 13px; padding: 12px; background: #f8fafc; border-radius: 8px; box-sizing: border-box;" readonly></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button onclick="closeAIPromptModal()" class="btn btn-secondary">Close</button>
+            <button onclick="copyAIPrompt()" class="btn btn-primary" id="copy-ai-btn">📋 Copy Prompt</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // System Utilities & Global State
     const defaultTasks = [
@@ -806,6 +712,7 @@
     ];
 
     let saveTimeout;
+    let confirmActionCallback = null;
 
     // Helper: Get local YYYY-MM-DD
     function getLocalDateString(dateObj) {
@@ -824,12 +731,15 @@
 
     // Navigation Logic
     function switchTab(tabId, btnElement) {
+        // Update Buttons
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
+        // Update Panes
         document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
 
+        // Render appropriate data when switching
         if (tabId === 'tab-weekly') renderWeekly();
         if (tabId === 'tab-monthly') renderMonthly();
     }
@@ -853,61 +763,120 @@
         const texts = document.querySelectorAll('.brand-text');
         
         logos.forEach(logoImg => {
-            logoImg.src = dataUrl ? dataUrl : 'logo.png';
-            logoImg.style.display = 'block';
+            if (dataUrl) {
+                logoImg.src = dataUrl;
+                logoImg.style.display = 'block';
+            } else {
+                logoImg.style.display = 'none';
+                logoImg.removeAttribute('src');
+            }
         });
 
         texts.forEach(textLogo => {
-            textLogo.style.display = 'none';
-        });
-    }
-
-    // Profile Logic
-    function loadProfile() {
-        const profileStr = localStorage.getItem('mobiHubProfile');
-        let profile = { name: "Deepak", email: "" }; // default
-        
-        if (profileStr) {
-            profile = JSON.parse(profileStr);
-        }
-        
-        document.getElementById('profile-name').value = profile.name;
-        document.getElementById('profile-email').value = profile.email;
-        
-        updatePostcardProfileDisplays(profile.name, profile.email);
-    }
-
-    function saveProfile() {
-        const name = document.getElementById('profile-name').value.trim() || 'Deepak'; // fallback
-        const email = document.getElementById('profile-email').value.trim();
-        
-        localStorage.setItem('mobiHubProfile', JSON.stringify({ name, email }));
-        updatePostcardProfileDisplays(name, email);
-    }
-
-    function updatePostcardProfileDisplays(name, email) {
-        // Update Name
-        document.querySelectorAll('.display-name').forEach(el => el.innerText = name);
-        
-        // Update Email and conditionally hide the row if empty
-        document.querySelectorAll('.display-email').forEach(el => el.innerText = email);
-        document.querySelectorAll('.email-row').forEach(row => {
-            if (email) {
-                row.style.display = 'flex';
+            if (dataUrl) {
+                textLogo.style.display = 'none';
             } else {
-                row.style.display = 'none';
+                textLogo.style.display = 'block';
             }
         });
     }
 
+    // Custom Modal Functions
+    function showMessageModal(text) {
+        document.getElementById('message-modal-text').innerText = text;
+        document.getElementById('message-modal').style.display = 'flex';
+    }
+
+    function closeMessageModal() {
+        document.getElementById('message-modal').style.display = 'none';
+    }
+
+    function showConfirmModal(text, callback) {
+        document.getElementById('confirm-modal-text').innerText = text;
+        document.getElementById('confirm-modal').style.display = 'flex';
+        confirmActionCallback = callback;
+    }
+
+    function closeConfirmModal(confirmed) {
+        document.getElementById('confirm-modal').style.display = 'none';
+        if (confirmed && confirmActionCallback) {
+            confirmActionCallback();
+        }
+        confirmActionCallback = null;
+    }
+
+    function showImageModal(imgDataUrl) {
+        document.getElementById('modal-image-preview').src = imgDataUrl;
+        document.getElementById('image-modal').style.display = 'flex';
+    }
+
+    function closeImageModal() {
+        document.getElementById('image-modal').style.display = 'none';
+        document.getElementById('modal-image-preview').src = '';
+    }
+
+    function generateAIPrompt() {
+        const rows = document.querySelectorAll('#task-tbody tr');
+        let completedTasksList = [];
+
+        rows.forEach(row => {
+            const isIncluded = row.querySelector('.task-include').checked;
+            const task = row.querySelector('.input-task').value.trim();
+            const status = row.querySelector('.input-status').value;
+
+            // Added check to exclude "Refurbished and Back Market Pricing" from the AI prompt
+            if (isIncluded && task && status === 'Done' && task !== "Refurbished and Back Market Pricing") {
+                completedTasksList.push(`- ${task}`);
+            }
+        });
+
+        if (completedTasksList.length === 0) {
+            showMessageModal("No completed tasks selected yet. Please mark some tasks as 'Done' first.");
+            return;
+        }
+
+        const promptText = `I need to send a brief daily end-of-day report to my boss. Here are the tasks I completed today:\n\n${completedTasksList.join('\n')}\n\nPlease write a short, professional, and concise summary (just 2-3 sentences) capturing the crux of my work today. Focus on the value and output. Do not include greetings or sign-offs, just the core summary.`;
+
+        document.getElementById('ai-prompt-text').value = promptText;
+        document.getElementById('ai-prompt-modal').style.display = 'flex';
+        document.getElementById('copy-ai-btn').innerText = '📋 Copy Prompt';
+    }
+
+    function closeAIPromptModal() {
+        document.getElementById('ai-prompt-modal').style.display = 'none';
+    }
+
+    function copyAIPrompt() {
+        const textToCopy = document.getElementById('ai-prompt-text').value;
+        const btn = document.getElementById('copy-ai-btn');
+        
+        try {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                btn.innerText = '✅ Copied!';
+            }).catch(() => fallbackCopy(btn));
+        } catch (e) {
+            fallbackCopy(btn);
+        }
+    }
+
+    function fallbackCopy(btnElement) {
+        const textArea = document.getElementById('ai-prompt-text');
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            btnElement.innerText = '✅ Copied!';
+        } catch (err) {
+            console.error('Fallback copy failed', err);
+            btnElement.innerText = '❌ Failed to copy';
+        }
+    }
+
     // ==========================================
-    // APP INITIALIZATION & DAILY TAB LOGIC
+    // DAILY TAB LOGIC
     // ==========================================
 
     function initApp() {
-        // Load Profile Data
-        loadProfile();
-
         // Set date pickers defaults
         const todayStr = getLocalDateString(new Date());
         document.getElementById('daily-date-picker').value = todayStr;
@@ -922,6 +891,7 @@
         // Init weekly picker to current week
         const d = new Date();
         const year = d.getFullYear();
+        // Calculate week number roughly
         const start = new Date(year, 0, 1);
         const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
         const weekNum = Math.ceil((d.getDay() + 1 + days) / 7);
@@ -929,23 +899,38 @@
 
         // Init monthly picker to current month
         document.getElementById('month-selector').value = todayStr.substring(0, 7);
+
+        // Initialize drag-and-drop sortable list
+        new Sortable(document.getElementById('task-tbody'), {
+            handle: '.drag-handle', // Restricts drag start to the handle element
+            animation: 150,         // Smooth animation speed
+            ghostClass: 'sortable-ghost', // Class for drop placeholder
+            onEnd: function() {
+                // When dragging ends, save the new order and rebuild the visual report immediately
+                generateReport(true);
+            }
+        });
     }
 
     function loadFormForDate() {
         const selectedDate = document.getElementById('daily-date-picker').value;
         const tbody = document.getElementById('task-tbody');
+        const notesInput = document.getElementById('daily-notes-input');
         tbody.innerHTML = ''; 
 
         let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         let dayData = history[selectedDate];
 
         if (dayData && dayData.data) {
+            // Load from history
             dayData.data.forEach((item) => {
                 let intVal = item.intensity !== undefined ? item.intensity : 1;
                 tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
             });
+            notesInput.value = dayData.notes || '';
         } else {
-            // Legacy check or default load
+            notesInput.value = '';
+            // Check legacy `mobiHubTasks` or load default if strictly today
             const todayStr = getLocalDateString(new Date());
             const legacyData = localStorage.getItem('mobiHubTasks');
             
@@ -956,8 +941,9 @@
                     tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
                 });
             } else {
+                // Load defaults
                 defaultTasks.forEach((taskName) => {
-                    tbody.appendChild(createRowHTML(taskName, 'Pending', true, 1));
+                    tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
                 });
             }
         }
@@ -965,23 +951,26 @@
         generateReport(false); 
     }
 
-    function createRowHTML(taskName = '', status = 'Pending', included = true, intensity = 1) {
+    function createRowHTML(taskName = '', status = 'Done', included = true, intensity = 1) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td style="text-align: center; vertical-align: middle;" class="drag-handle" title="Drag to reorder">
+                ⋮⋮
+            </td>
             <td style="text-align: center; vertical-align: middle;">
                 <input type="checkbox" class="task-include" ${included ? 'checked' : ''} onchange="generateReport(true)">
             </td>
             <td>
-                <input type="text" class="input-task" value="${taskName}" placeholder="Task description..." oninput="generateReport(true)">
+                <input type="text" class="input-task" value="${taskName}" placeholder="Enter task..." oninput="generateReport(true)">
             </td>
             <td>
-                <input type="number" class="input-intensity" value="${intensity}" min="0" oninput="generateReport(true)">
+                <input type="number" class="input-intensity" value="${intensity}" min="0" oninput="generateReport(true)" style="text-align: center;">
             </td>
             <td>
                 <select class="input-status" onchange="generateReport(true)">
+                    <option value="Done" ${status === 'Done' ? 'selected' : ''}>Done</option>
                     <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
                     <option value="In Progress" ${status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                    <option value="Done" ${status === 'Done' ? 'selected' : ''}>Done</option>
                 </select>
             </td>
         `;
@@ -990,18 +979,18 @@
 
     function addCustomTask() {
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML('', 'Pending', true, 1));
+        tbody.appendChild(createRowHTML('', 'Done', true, 1));
         generateReport(true);
     }
 
     function resetToDefault() {
-        if(confirm("Are you sure you want to reset tasks for this date? (Your profile settings will not be affected).")) {
+        showConfirmModal("Are you sure you want to reset this date to the default tasks?", () => {
             const selectedDate = document.getElementById('daily-date-picker').value;
             let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
             delete history[selectedDate];
             localStorage.setItem('mobiHubHistory', JSON.stringify(history));
             loadFormForDate();
-        }
+        });
     }
 
     function showSaveIndicator() {
@@ -1015,6 +1004,7 @@
         const rows = document.querySelectorAll('#task-tbody tr');
         const reportTbody = document.getElementById('report-tbody');
         const selectedDate = document.getElementById('daily-date-picker').value;
+        const notesVal = document.getElementById('daily-notes-input').value.trim();
         reportTbody.innerHTML = ''; 
 
         let totalTasks = 0;
@@ -1060,7 +1050,7 @@
             else if (status === 'Pending') { badgeClass = 'badge-pending'; } 
             else if (status === 'In Progress') { badgeClass = 'badge-progress'; }
 
-            const reportIntensityDisplay = isRefurbTask ? '-' : intensity;
+            const reportIntensityDisplay = isRefurbTask ? '<span class="matrix-check">✓</span>' : intensity;
 
             const tr = document.createElement('tr');
             if(rowClass) tr.classList.add(rowClass);
@@ -1080,14 +1070,29 @@
         document.getElementById('stat-completed').innerText = `${completedTasks} / ${totalTasks}`;
         document.getElementById('stat-intensity').innerText = totalIntensityScore;
 
+        const notesContainer = document.getElementById('report-notes-container');
+        const notesDisplay = document.getElementById('report-notes-display');
+        if (notesVal) {
+            notesDisplay.innerText = notesVal;
+            notesContainer.style.display = 'block';
+        } else {
+            notesContainer.style.display = 'none';
+        }
+
         // Auto-Save to Global History using selected date
         let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         history[selectedDate] = {
             date: selectedDate,
             data: dataToSave,
-            stats: { total: totalTasks, completed: completedTasks, intensity: totalIntensityScore }
+            stats: { total: totalTasks, completed: completedTasks, intensity: totalIntensityScore },
+            notes: notesVal
         };
         localStorage.setItem('mobiHubHistory', JSON.stringify(history));
+
+        // For backwards compatibility
+        if (selectedDate === getLocalDateString(new Date())) {
+            localStorage.setItem('mobiHubTasks', JSON.stringify(dataToSave));
+        }
 
         if(showSave) showSaveIndicator();
     }
@@ -1098,10 +1103,12 @@
     // ==========================================
 
     function getDatesOfWeek(weekString) {
+        // weekString format: "2026-W15"
         if (!weekString) return [];
         const year = parseInt(weekString.substring(0, 4));
         const week = parseInt(weekString.substring(6, 8));
         
+        // Approach to get Monday of that ISO week
         const simple = new Date(year, 0, 1 + (week - 1) * 7);
         const dow = simple.getDay();
         const ISOweekStart = simple;
@@ -1123,9 +1130,10 @@
         const weekVal = document.getElementById('week-selector').value;
         if (!weekVal) return;
         
-        const dates = getDatesOfWeek(weekVal); 
+        const dates = getDatesOfWeek(weekVal); // Array of 5 YYYY-MM-DD
         const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         
+        // Update headers with actual short dates
         const thead = document.getElementById('weekly-table-header');
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         for (let i=0; i<5; i++) {
@@ -1136,7 +1144,9 @@
         
         document.getElementById('weekly-date-range').innerText = `${formatReadableDate(dates[0])} to ${formatReadableDate(dates[4])}`;
 
-        let uniqueTasksMap = new Map(); 
+        // Aggregate unique tasks that were included at least once
+        let uniqueTasksMap = new Map(); // taskName -> isRefurbTask
+        
         dates.forEach(dStr => {
             const dayRecord = history[dStr];
             if (dayRecord && dayRecord.data) {
@@ -1181,13 +1191,14 @@
                 html += `<td>${cellHtml}</td>`;
             });
             
-            html += `<td style="font-weight: 700; color: #0f172a;">${isRefurb ? '-' : rowTotalInt}</td>`;
+            html += `<td style="font-weight: 600;">${isRefurb ? '-' : rowTotalInt}</td>`;
             tr.innerHTML = html;
             tbody.appendChild(tr);
         });
 
+        // If no data
         if (uniqueTasksMap.size === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">No recorded tasks found for this week.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
         }
 
         document.getElementById('weekly-stat-completed').innerText = grandTotalCompleted;
@@ -1200,23 +1211,26 @@
     // ==========================================
 
     function renderMonthly() {
-        const monthVal = document.getElementById('month-selector').value;
+        const monthVal = document.getElementById('month-selector').value; // "YYYY-MM"
         if (!monthVal) return;
 
         const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         
         const year = parseInt(monthVal.split('-')[0]);
-        const month = parseInt(monthVal.split('-')[1]) - 1; 
+        const month = parseInt(monthVal.split('-')[1]) - 1; // 0-indexed
         
         const d = new Date(year, month, 1);
         const monthName = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         document.getElementById('monthly-date-range').innerText = monthName;
 
+        // Group history by Week of the month
+        // Just extract all dates in history that match YYYY-MM
         let activeDates = Object.keys(history).filter(dateStr => dateStr.startsWith(monthVal)).sort();
         
         let grandCompleted = 0;
         let grandIntensity = 0;
 
+        // Group by weeks roughly based on ISO week
         let weeksMap = {};
         
         activeDates.forEach(dateStr => {
@@ -1245,23 +1259,23 @@
         weekKeys.forEach(wk => {
             const wData = weeksMap[wk];
             wData.dates.sort();
-            const minDate = formatReadableDate(wData.dates[0]).split(',')[1].trim();
+            const minDate = formatReadableDate(wData.dates[0]).split(',')[1].trim(); // just Month Day
             const maxDate = formatReadableDate(wData.dates[wData.dates.length-1]).split(',')[1].trim();
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div style="font-weight: 700; color: #0f172a;">${wk}</div>
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${minDate} - ${maxDate}</div>
+                    <div style="font-weight: 600; color: #1e293b;">${wk}</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">${minDate} - ${maxDate}</div>
                 </td>
-                <td style="text-align: center; font-weight: 600; font-size: 16px;">${wData.completed}</td>
-                <td style="text-align: right; font-weight: 700; font-size: 16px; color: var(--primary-color);">${wData.intensity}</td>
+                <td style="text-align: center; font-weight: 500;">${wData.completed}</td>
+                <td style="text-align: right; font-weight: 600; color: var(--primary-color);">${wData.intensity}</td>
             `;
             tbody.appendChild(tr);
         });
 
         if (weekKeys.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 24px; color: var(--text-muted);">No recorded data found for this month.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded data for this month.</td></tr>`;
         }
 
         document.getElementById('monthly-stat-completed').innerText = grandCompleted;
@@ -1274,14 +1288,11 @@
     // ==========================================
 
     function downloadPNG(elementId, filenamePrefix, btnElement) {
-        const originalText = btnElement.innerHTML;
-        btnElement.innerHTML = '⏳ Generating...';
+        const originalText = btnElement.innerText;
+        btnElement.innerText = '⏳ Generating...';
         btnElement.disabled = true;
 
         const postcard = document.getElementById(elementId);
-        
-        // Grab current name for file name
-        const userName = document.getElementById('profile-name').value.trim().replace(/[^a-zA-Z0-9]/g, '') || 'Deepak';
 
         html2canvas(postcard, {
             scale: 2, 
@@ -1290,23 +1301,23 @@
         }).then(canvas => {
             const link = document.createElement('a');
             const dateStr = new Date().toISOString().split('T')[0];
-            link.download = `MobiHub_${filenamePrefix}_${userName}_${dateStr}.png`;
+            link.download = `MobiHub_${filenamePrefix}_Deepak_${dateStr}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
 
-            btnElement.innerHTML = originalText;
+            btnElement.innerText = originalText;
             btnElement.disabled = false;
         }).catch(err => {
             console.error('Error generating image:', err);
-            alert('Failed to generate image. Please try again.');
-            btnElement.innerHTML = originalText;
+            showMessageModal('Failed to generate image. Please try again.');
+            btnElement.innerText = originalText;
             btnElement.disabled = false;
         });
     }
 
     function copyImage(elementId, btnElement) {
-        const originalText = btnElement.innerHTML;
-        btnElement.innerHTML = '⏳ Copying...';
+        const originalText = btnElement.innerText;
+        btnElement.innerText = '⏳ Processing...';
         btnElement.disabled = true;
 
         const postcard = document.getElementById(elementId);
@@ -1316,32 +1327,19 @@
             useCORS: true,
             backgroundColor: '#ffffff'
         }).then(canvas => {
-            canvas.toBlob(blob => {
-                try {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    navigator.clipboard.write([item]).then(() => {
-                        btnElement.innerHTML = '✅ Copied!';
-                        setTimeout(() => { 
-                            btnElement.innerHTML = originalText; 
-                            btnElement.disabled = false; 
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('Clipboard write error:', err);
-                        alert('Could not auto-copy. Your browser might block clipboard access. Please use Download instead.');
-                        btnElement.innerHTML = originalText;
-                        btnElement.disabled = false;
-                    });
-                } catch (err) {
-                    console.error('ClipboardItem not supported:', err);
-                    alert('Image copying is not fully supported in this browser. Please use the Download button.');
-                    btnElement.innerHTML = originalText;
-                    btnElement.disabled = false;
-                }
-            }, 'image/png');
+            // Render the image into the modal as a fallback to strict iframe clipboard permissions
+            const imgData = canvas.toDataURL('image/png');
+            showImageModal(imgData);
+            
+            btnElement.innerText = '✅ Ready!';
+            setTimeout(() => { 
+                btnElement.innerText = originalText; 
+                btnElement.disabled = false; 
+            }, 2000);
         }).catch(err => {
-            console.error('Error generating image for copy:', err);
-            alert('Failed to process image. Please try again.');
-            btnElement.innerHTML = originalText;
+            console.error('Error generating image for preview:', err);
+            showMessageModal('Failed to process image. Please try again.');
+            btnElement.innerText = originalText;
             btnElement.disabled = false;
         });
     }
