@@ -391,7 +391,8 @@
                             <tr>
                                 <th style="width: 5%; text-align: center;"></th>
                                 <th style="width: 5%; text-align: center;">✓</th>
-                                <th style="width: 60%;">Task</th>
+                                <th style="width: 40%;">Task</th>
+                                <th style="width: 20%; text-align: center;">Int.</th>
                                 <th style="width: 30%;">Status</th>
                             </tr>
                         </thead>
@@ -454,7 +455,8 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 70%;">Task Details</th>
+                                    <th style="width: 55%;">Task Details</th>
+                                    <th style="width: 15%; text-align: center;">Int.</th>
                                     <th style="width: 30%; text-align: right;">Status</th>
                                 </tr>
                             </thead>
@@ -565,8 +567,9 @@
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th style="width: 50%;">Week Period</th>
-                            <th style="width: 50%; text-align: center;">Tasks Completed</th>
+                            <th style="width: 40%;">Week Period</th>
+                            <th style="width: 30%; text-align: center;">Tasks Completed</th>
+                            <th style="width: 30%; text-align: right;">Intensity Score</th>
                         </tr>
                     </thead>
                     <tbody id="monthly-tbody">
@@ -910,7 +913,8 @@
 
         if (dayData && dayData.data) {
             dayData.data.forEach((item) => {
-                tbody.appendChild(createRowHTML(item.task, item.status, item.included));
+                let intVal = item.intensity !== undefined ? item.intensity : 1;
+                tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
             });
             notesInput.value = dayData.notes || '';
         } else {
@@ -921,11 +925,12 @@
             if (selectedDate === todayStr && legacyData) {
                 const tasks = JSON.parse(legacyData);
                 tasks.forEach((item) => {
-                    tbody.appendChild(createRowHTML(item.task, item.status, item.included));
+                    let intVal = item.intensity !== undefined ? item.intensity : 1;
+                    tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
                 });
             } else {
                 defaultTasks.forEach((taskName) => {
-                    tbody.appendChild(createRowHTML(taskName, 'Done', true));
+                    tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
                 });
             }
         }
@@ -933,7 +938,7 @@
         generateReport(false); 
     }
 
-    function createRowHTML(taskName = '', status = 'Done', included = true) {
+    function createRowHTML(taskName = '', status = 'Done', included = true, intensity = 1) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;" class="drag-handle" title="Drag to reorder">
@@ -944,6 +949,9 @@
             </td>
             <td>
                 <input type="text" class="input-task" value="${taskName}" placeholder="Enter task..." oninput="generateReport(true)">
+            </td>
+            <td>
+                <input type="number" class="input-intensity" value="${intensity}" min="0" oninput="generateReport(true)" style="text-align: center;">
             </td>
             <td>
                 <select class="input-status" onchange="generateReport(true)">
@@ -958,7 +966,7 @@
 
     function addCustomTask() {
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML('', 'Done', true));
+        tbody.appendChild(createRowHTML('', 'Done', true, 1));
         generateReport(true);
     }
 
@@ -972,7 +980,7 @@
         }
 
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML(taskName, 'Done', true));
+        tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
         dropdown.value = "";
         generateReport(true);
     }
@@ -1003,19 +1011,31 @@
 
         let totalTasks = 0;
         let completedTasks = 0;
+        let totalIntensityScore = 0;
         let dataToSave = [];
 
         rows.forEach(row => {
             const isIncluded = row.querySelector('.task-include').checked;
             const task = row.querySelector('.input-task').value;
             const status = row.querySelector('.input-status').value;
+            const intensityInput = row.querySelector('.input-intensity');
             
             const trimmedTask = task.trim();
+            const isRefurbTask = trimmedTask === "Refurbished and Back Market Pricing";
+            
+            if (isRefurbTask) {
+                intensityInput.style.visibility = 'hidden';
+            } else {
+                intensityInput.style.visibility = 'visible';
+            }
+
+            const intensity = isRefurbTask ? 0 : (parseInt(intensityInput.value) || 0);
 
             dataToSave.push({
                 task: task,
                 status: status,
-                included: isIncluded
+                included: isIncluded,
+                intensity: intensityInput.value
             });
 
             if (!isIncluded || !trimmedTask) return; 
@@ -1023,6 +1043,7 @@
 
             if (status === 'Done') {
                 completedTasks++;
+                totalIntensityScore += intensity;
             }
 
             let badgeClass = '';
@@ -1031,11 +1052,14 @@
             else if (status === 'Pending') { badgeClass = 'badge-pending'; } 
             else if (status === 'In Progress') { badgeClass = 'badge-progress'; }
 
+            const reportIntensityDisplay = isRefurbTask ? '<span class="matrix-check">✓</span>' : intensity;
+
             const tr = document.createElement('tr');
             if(rowClass) tr.classList.add(rowClass);
             
             tr.innerHTML = `
                 <td><div class="task-name-display">${trimmedTask}</div></td>
+                <td style="text-align: center; font-weight: 600;">${reportIntensityDisplay}</td>
                 <td style="text-align: right;">
                     <span class="badge ${badgeClass}">${status}</span>
                 </td>
@@ -1059,7 +1083,7 @@
         history[selectedDate] = {
             date: selectedDate,
             data: dataToSave,
-            stats: { total: totalTasks, completed: completedTasks },
+            stats: { total: totalTasks, completed: completedTasks, intensity: totalIntensityScore },
             notes: notesVal
         };
         localStorage.setItem('mobiHubHistory', JSON.stringify(history));
@@ -1123,7 +1147,7 @@
                 dayRecord.data.forEach(item => {
                     if (item.included && item.task.trim() !== '') {
                         const t = item.task.trim();
-                        uniqueTasksMap.set(t, true);
+                        uniqueTasksMap.set(t, t === "Refurbished and Back Market Pricing");
                     }
                 });
             }
@@ -1134,7 +1158,7 @@
         
         let grandTotalCompleted = 0;
 
-        uniqueTasksMap.forEach((_, taskName) => {
+        uniqueTasksMap.forEach((isRefurb, taskName) => {
             const tr = document.createElement('tr');
             
             let html = `<td><div class="task-name-display">${taskName}</div></td>`;
@@ -1146,7 +1170,12 @@
                     const taskItem = dayRecord.data.find(t => t.task.trim() === taskName && t.included);
                     if (taskItem && taskItem.status === 'Done') {
                         grandTotalCompleted++;
-                        cellHtml = `<span class="matrix-check">✓</span>`;
+                        if (isRefurb) {
+                            cellHtml = `<span class="matrix-check">✓</span>`;
+                        } else {
+                            const intVal = parseInt(taskItem.intensity) || 0;
+                            cellHtml = `<span class="matrix-check" style="color: var(--primary-color)">${intVal}</span>`;
+                        }
                     }
                 }
                 html += `<td>${cellHtml}</td>`;
@@ -1157,7 +1186,7 @@
         });
 
         if (uniqueTasksMap.size === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
         }
 
         document.getElementById('weekly-stat-completed').innerText = grandTotalCompleted;
@@ -1195,10 +1224,11 @@
             
             const weekLabel = `Week ${weekNum}`;
             if (!weeksMap[weekLabel]) {
-                weeksMap[weekLabel] = { count: 0, completed: 0, dates: [] };
+                weeksMap[weekLabel] = { count: 0, completed: 0, intensity: 0, dates: [] };
             }
             weeksMap[weekLabel].dates.push(dateStr);
             weeksMap[weekLabel].completed += history[dateStr].stats.completed || 0;
+            weeksMap[weekLabel].intensity += history[dateStr].stats.intensity || 0;
             
             grandCompleted += history[dateStr].stats.completed || 0;
         });
@@ -1221,12 +1251,13 @@
                     <div style="font-size: 11px; color: var(--text-muted);">${minDate} - ${maxDate}</div>
                 </td>
                 <td style="text-align: center; font-weight: 500;">${wData.completed}</td>
+                <td style="text-align: right; font-weight: 600; color: var(--primary-color);">${wData.intensity}</td>
             `;
             tbody.appendChild(tr);
         });
 
         if (weekKeys.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded data for this month.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded data for this month.</td></tr>`;
         }
 
         document.getElementById('monthly-stat-completed').innerText = grandCompleted;
