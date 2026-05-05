@@ -10,28 +10,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
-            --bg-color: #f0f6ff;
+            /* 3D Paper Green Theme Colors */
+            --bg-color: #d1d5db; /* Gray background to make paper pop */
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --primary-color: #2563eb;
+            --primary-color: #059669; /* Emerald Green */
+            --primary-hover: #047857;
             
-            --done-bg: #2563eb;
+            --done-bg: #059669;
             --done-text: #ffffff;
             --pending-bg: #f1f5f9;
             --pending-text: #64748b;
-            --progress-bg: #dbeafe;
-            --progress-text: #1e40af;
+            --progress-bg: #dcfce7;
+            --progress-text: #166534;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
+            background-image: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
             line-height: 1.5;
+            min-height: 100vh;
         }
 
         /* Tab Navigation */
@@ -44,7 +48,7 @@
 
         .tab-btn {
             padding: 10px 24px;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
@@ -52,17 +56,21 @@
             background: #ffffff;
             color: var(--text-muted);
             transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .tab-btn.active {
             background: var(--primary-color);
             color: #ffffff;
             border-color: var(--primary-color);
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 4px 6px rgba(5, 150, 105, 0.3);
+            transform: translateY(1px);
         }
 
         .tab-btn:hover:not(.active) {
             background: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
         }
 
         .tab-pane {
@@ -90,7 +98,7 @@
         .right-panel {
             flex: 1;
             min-width: 0;
-            max-width: 700px; /* slightly wider to accommodate weekly matrix */
+            max-width: 700px; 
         }
 
         .container {
@@ -98,39 +106,59 @@
             margin: 0 auto;
         }
 
-        /* Card Styles */
-        .card {
+        /* 3D Paper Card Styles */
+        .card, .postcard, .controls-bar {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            padding: 24px;
+            border-radius: 2px; /* Sharp corners for paper look */
+            position: relative;
+            /* 3D layered paper shadow */
+            box-shadow: 
+                0 1px 1px rgba(0,0,0,0.05), 
+                0 2px 2px rgba(0,0,0,0.05), 
+                0 4px 4px rgba(0,0,0,0.05), 
+                0 8px 8px rgba(0,0,0,0.05),
+                0 16px 16px rgba(0,0,0,0.05);
             margin-bottom: 24px;
-            overflow-x: auto;
+            z-index: 1;
         }
 
-        h1, h2, h3 {
-            margin-top: 0;
-            color: var(--text-main);
+        /* Stacked paper pseudo-element */
+        .card::before, .postcard::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: -4px; bottom: -4px;
+            background: #f8fafc;
+            z-index: -1;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-radius: 2px;
         }
+
+        .card { padding: 24px; overflow-x: auto; }
+        .postcard { padding: 32px; width: 100%; min-width: 480px; max-width: 650px; margin: 0 auto; }
+
+        /* Remove shadows when exporting to image for clean borders */
+        .exporting, .exporting::before {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            transform: none !important;
+        }
+        .exporting::before { display: none !important; }
+
+        h1, h2, h3 { margin-top: 0; color: var(--text-main); }
 
         .header-title {
             text-align: center;
             margin-bottom: 24px;
             color: #111827;
+            text-shadow: 1px 1px 0 #ffffff;
         }
 
         /* Table Styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 10px 8px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th {
             background-color: #f8fafc;
             font-weight: 600;
@@ -138,164 +166,121 @@
             text-transform: uppercase;
             font-size: 12px;
             letter-spacing: 0.05em;
+            border-top: 1px solid var(--border-color);
         }
 
         /* Drag and Drop Styles */
         .drag-handle {
             cursor: grab;
-            color: #cbd5e1;
-            font-size: 16px;
+            color: #94a3b8;
+            font-size: 20px;
             user-select: none;
             transition: color 0.2s;
-        }
-        
-        .drag-handle:hover {
-            color: var(--text-muted);
-        }
-
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-
-        .sortable-ghost {
-            opacity: 0.5;
-            background-color: #f8fafc;
-            border: 2px dashed var(--border-color);
-        }
-
-        /* Matrix Table Specifics (Weekly Report) */
-        .matrix-table th, .matrix-table td {
-            padding: 8px 6px;
             text-align: center;
         }
-        .matrix-table th:first-child, .matrix-table td:first-child {
-            text-align: left;
+        .drag-handle:hover { color: var(--primary-color); }
+        .drag-handle:active { cursor: grabbing; color: var(--primary-hover); }
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #dcfce7;
+            border: 2px dashed var(--primary-color);
         }
-        .matrix-table td {
-            font-size: 13px;
-        }
-        .matrix-check {
-            color: #10b981;
-            font-weight: bold;
-        }
+
+        /* Matrix Table */
+        .matrix-table th, .matrix-table td { padding: 8px 6px; text-align: center; }
+        .matrix-table th:first-child, .matrix-table td:first-child { text-align: left; }
+        .matrix-table td { font-size: 13px; }
+        .matrix-check { color: var(--primary-color); font-weight: bold; font-size: 15px; }
 
         /* Input Styles */
         input[type="text"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select, textarea {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
             font-size: 14px;
             color: var(--text-main);
             transition: all 0.2s;
+            background: #f8fafc;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
         input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
         }
         
-        .input-intensity {
-            font-size: 16px !important;
-            font-weight: 600;
-            padding: 10px 8px !important;
-        }
-
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary-color);
-            cursor: pointer;
-        }
+        .input-intensity { font-size: 16px !important; font-weight: 600; padding: 10px 8px !important; }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
 
         /* Button Styles */
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
+        .btn-group { display: flex; gap: 12px; margin-top: 24px; }
 
         .btn {
             padding: 10px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+            transition: all 0.1s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
+        .btn:active { transform: translateY(2px); box-shadow: none !important; }
 
         .btn-primary {
             background-color: var(--primary-color);
             color: white;
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 4px 0 #047857, 0 5px 10px rgba(5, 150, 105, 0.4);
         }
         
-        .btn-primary:hover {
-            box-shadow: 0 6px 10px rgba(37, 99, 235, 0.3);
-        }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(1px); box-shadow: 0 3px 0 #022c22, 0 4px 8px rgba(5, 150, 105, 0.4); }
 
         .btn-secondary {
             background-color: #ffffff;
             color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 0 var(--border-color), 0 5px 10px rgba(0,0,0,0.05);
         }
 
         .btn-secondary:hover {
             background-color: #f8fafc;
+            transform: translateY(1px);
+            box-shadow: 0 3px 0 #cbd5e1, 0 4px 8px rgba(0,0,0,0.05);
         }
         
         .btn-danger {
             background-color: #ef4444;
             color: white;
-            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+            box-shadow: 0 4px 0 #b91c1c, 0 5px 10px rgba(239, 68, 68, 0.3);
         }
+        
+        .btn-danger:hover { background-color: #dc2626; transform: translateY(1px); box-shadow: 0 3px 0 #991b1b, 0 4px 8px rgba(239, 68, 68, 0.3); }
 
         /* Status Badges */
         .badge {
             display: inline-block;
             padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 13px;
-            font-weight: 600;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 700;
             text-align: center;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        .badge-done { background-color: var(--done-bg); color: var(--done-text); }
-        .badge-pending { background-color: var(--pending-bg); color: var(--pending-text); }
-        .badge-progress { background-color: var(--progress-bg); color: var(--progress-text); }
+        .badge-done { background-color: var(--done-bg); color: var(--done-text); box-shadow: inset 0 0 0 1px #047857; }
+        .badge-pending { background-color: var(--pending-bg); color: var(--pending-text); box-shadow: inset 0 0 0 1px #cbd5e1; }
+        .badge-progress { background-color: var(--progress-bg); color: var(--progress-text); box-shadow: inset 0 0 0 1px #bbf7d0; }
 
-        /* Report Postcard Styles */
-        .postcard-wrapper {
-            overflow-x: auto;
-            padding: 0 0 20px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .postcard {
-            width: 100%; 
-            min-width: 480px;
-            max-width: 650px;
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            position: relative;
-            margin: 0;
-        }
-
+        /* Postcard Elements */
         .postcard-header {
             display: flex;
             justify-content: space-between;
@@ -305,85 +290,28 @@
             margin-bottom: 20px;
         }
 
-        .brand {
-            display: flex;
-            flex-direction: column;
-        }
+        .brand-name { font-size: 24px; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.5px; }
+        .brand-subtitle { font-size: 11px; color: var(--primary-color); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+        .meta-info { text-align: right; }
+        .meta-info p { margin: 2px 0; font-size: 13px; color: var(--text-muted); }
+        .meta-info strong { color: var(--text-main); }
 
-        .brand-name {
-            font-size: 24px;
-            font-weight: 800;
-            color: #111827;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
-
-        .brand-subtitle {
-            font-size: 11px;
-            color: var(--primary-color);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-
-        .meta-info {
-            text-align: right;
-        }
-
-        .meta-info p {
-            margin: 2px 0;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .meta-info strong {
-            color: var(--text-main);
-        }
-
-        .stats-grid {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
+        .stats-grid { display: flex; gap: 16px; margin-bottom: 20px; }
         .stat-card {
             flex: 1;
             background-color: #f8fafc;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 4px;
             padding: 16px;
             text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 4px; }
+        .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .report-table th {
-            background-color: transparent;
-            border-bottom: 2px solid var(--border-color);
-            color: var(--text-muted);
-        }
-
-        .row-done td {
-            background-color: rgba(37, 99, 235, 0.05);
-        }
-
-        .task-name-display {
-            font-weight: 500;
-            color: #1e293b;
-        }
+        .report-table th { background-color: transparent; border-bottom: 2px solid var(--border-color); color: var(--text-muted); }
+        .row-done td { background-color: rgba(5, 150, 105, 0.05); }
+        .task-name-display { font-weight: 500; color: #1e293b; }
         
         .auto-save-indicator {
             font-size: 13px;
@@ -391,19 +319,15 @@
             text-align: right;
             margin-top: 12px;
             opacity: 0;
-            font-weight: 500;
+            font-weight: 600;
             transition: opacity 0.3s;
         }
 
         .controls-bar {
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            padding: 16px 24px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         /* Responsive */
@@ -436,17 +360,16 @@
         <div class="main-layout">
             <!-- Left Column: Input Form -->
             <div class="left-panel">
-                <div class="card" id="input-section" style="padding: 24px;">
+                <div class="card" id="input-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-main);">Select & Edit Tasks</h2>
+                        <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main);">Select & Edit Tasks</h2>
                         <div style="display: flex; gap: 8px;">
                             <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
-                            <button class="btn btn-secondary" onclick="document.getElementById('logo-upload').click()" style="font-size: 12px; padding: 6px 12px;">📷 Logo</button>
-                            <button class="btn btn-danger" onclick="resetToDefault()" style="font-size: 12px; padding: 6px 12px;">Reset</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('logo-upload').click()" style="font-size: 12px; padding: 6px 12px; box-shadow: 0 2px 0 var(--border-color);">📷 Logo</button>
+                            <button class="btn btn-danger" onclick="resetToDefault()" style="font-size: 12px; padding: 6px 12px; box-shadow: 0 2px 0 #b91c1c;">Reset</button>
                         </div>
                     </div>
                     
-                    <!-- Allow selecting the date to back-edit history -->
                     <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
                         <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Editing Date:</label>
                         <input type="date" id="daily-date-picker" onchange="loadFormForDate()" style="width: auto; padding: 6px 10px;">
@@ -467,14 +390,20 @@
                         </tbody>
                     </table>
                     
-                    <div class="btn-group" style="margin-top: 20px;">
+                    <div class="btn-group" style="margin-top: 20px; flex-direction: column; gap: 12px;">
                         <button class="btn btn-primary" onclick="addCustomTask()" style="font-size: 15px; padding: 10px 20px; width: 100%;">➕ Add Custom Task</button>
+                        <div style="display: flex; gap: 8px; align-items: stretch; width: 100%;">
+                            <select id="recommended-tasks-dropdown" style="flex: 1; margin: 0;">
+                                <option value="" disabled selected>Select recommended task...</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="addRecommendedTask()" style="white-space: nowrap; padding: 0 16px;">➕ Add</button>
+                        </div>
                     </div>
                     
                     <div style="margin-top: 24px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">Daily Summary / Notes:</label>
-                            <button class="btn btn-secondary" onclick="generateAIPrompt()" style="font-size: 11px; padding: 4px 10px; box-shadow: none;">✨ Create AI Prompt</button>
+                            <button class="btn btn-secondary" onclick="generateAIPrompt()" style="font-size: 11px; padding: 4px 10px; box-shadow: 0 2px 0 var(--border-color);">✨ Create AI Prompt</button>
                         </div>
                         <textarea id="daily-notes-input" rows="3" style="resize: vertical;" placeholder="Enter the crux of today's report here..." oninput="generateReport(true)"></textarea>
                     </div>
@@ -653,45 +582,52 @@
 </div>
 
 <!-- Modal for Copy Image -->
-<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box;">
-    <div style="background: white; padding: 16px; border-radius: 12px; max-width: 100%; max-height: 90%; display: flex; flex-direction: column;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; gap: 20px;">
-            <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Right-click (or long-press) the image and select "Copy image"</h3>
-            <button onclick="closeImageModal()" class="btn btn-secondary" style="padding: 6px 16px;">Close</button>
+<div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; backdrop-filter: blur(4px);">
+    <div style="background: var(--bg-color); padding: 20px; border-radius: 4px; max-width: 100%; max-height: 95%; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center; gap: 20px; background: white; padding: 12px 16px; border-radius: 4px; border: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">📸</span>
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Image Ready to Copy!</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">Right-click (or long-press) the image below and select <strong>"Copy image"</strong></p>
+                </div>
+            </div>
+            <button onclick="closeImageModal()" class="btn btn-secondary" style="padding: 6px 16px; margin: 0; box-shadow: 0 2px 0 var(--border-color);">Close</button>
         </div>
-        <div style="overflow: auto; display: flex; justify-content: center; background: #f8fafc; border-radius: 8px; padding: 10px;">
-            <img id="modal-image-preview" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="overflow: auto; display: flex; justify-content: center; background: transparent;">
+            <!-- Render image inside a crisp paper wrapper -->
+            <img id="modal-image-preview" style="max-width: 100%; height: auto; border-radius: 2px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         </div>
     </div>
 </div>
 
 <!-- Generic Message Modal -->
-<div id="message-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-        <p id="message-modal-text" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main);"></p>
-        <button onclick="closeMessageModal()" class="btn btn-primary">OK</button>
+<div id="message-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
+    <div class="card" style="padding: 32px; max-width: 400px; text-align: center; margin: 0;">
+        <p id="message-modal-text" style="margin: 0 0 24px 0; font-size: 16px; color: var(--text-main);"></p>
+        <button onclick="closeMessageModal()" class="btn btn-primary" style="width: 100%;">OK</button>
     </div>
 </div>
 
 <!-- Confirm Modal -->
-<div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-        <p id="confirm-modal-text" style="margin-bottom: 20px; font-size: 16px; color: var(--text-main);"></p>
+<div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(2px);">
+    <div class="card" style="padding: 32px; max-width: 400px; text-align: center; margin: 0;">
+        <p id="confirm-modal-text" style="margin: 0 0 24px 0; font-size: 16px; color: var(--text-main); font-weight: 500;"></p>
         <div style="display: flex; gap: 12px; justify-content: center;">
-            <button onclick="closeConfirmModal(false)" class="btn btn-secondary">Cancel</button>
-            <button onclick="closeConfirmModal(true)" class="btn btn-danger">Confirm</button>
+            <button onclick="closeConfirmModal(false)" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            <button onclick="closeConfirmModal(true)" class="btn btn-danger" style="flex: 1;">Confirm Reset</button>
         </div>
     </div>
 </div>
 
 <!-- AI Prompt Modal -->
-<div id="ai-prompt-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
-    <div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-        <h3 style="margin-top: 0; color: var(--text-main); font-size: 18px;">Generate Summary with AI</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Copy this prompt and paste it into ChatGPT, Gemini, or Claude to get a concise crux of your day.</p>
-        <textarea id="ai-prompt-text" rows="8" style="width: 100%; margin-bottom: 16px; font-family: monospace; font-size: 13px; padding: 12px; background: #f8fafc; border-radius: 8px; box-sizing: border-box;" readonly></textarea>
+<div id="ai-prompt-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(2px);">
+    <div class="card" style="padding: 32px; max-width: 500px; width: 100%; margin: 0;">
+        <h3 style="margin: 0 0 8px 0; color: var(--text-main); font-size: 20px; font-weight: 800;">✨ Generate Summary with AI</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 20px 0;">Copy this prompt and paste it into ChatGPT, Gemini, or Claude to get a concise crux of your day.</p>
+        <textarea id="ai-prompt-text" rows="8" style="width: 100%; margin-bottom: 20px; font-family: monospace; font-size: 13px; padding: 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box;" readonly></textarea>
         <div style="display: flex; justify-content: flex-end; gap: 12px;">
-            <button onclick="closeAIPromptModal()" class="btn btn-secondary">Close</button>
+            <button onclick="closeAIPromptModal()" class="btn btn-secondary">Cancel</button>
             <button onclick="copyAIPrompt()" class="btn btn-primary" id="copy-ai-btn">📋 Copy Prompt</button>
         </div>
     </div>
@@ -709,6 +645,25 @@
         "New Leads",
         "Email Sent",
         "New Clients updated on CRM"
+    ];
+
+    const recommendedTasksList = [
+        "Refurbished and Back Market Pricing",
+        "LinkedIn Connection Request",
+        "LinkedIn Message",
+        "WhatsApp Message (New)",
+        "WTB/WTS Outreach",
+        "WhatsApp Group Blast",
+        "New Leads",
+        "Email Sent",
+        "New Clients updated on CRM",
+        "Follow-up Calls",
+        "Client Meeting / Demo",
+        "Update CRM Database",
+        "Send Pricing Quotes",
+        "Weekly Team Sync",
+        "Inventory Check",
+        "Prepare Market Analysis"
     ];
 
     let saveTimeout;
@@ -731,15 +686,12 @@
 
     // Navigation Logic
     function switchTab(tabId, btnElement) {
-        // Update Buttons
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         btnElement.classList.add('active');
 
-        // Update Panes
         document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
 
-        // Render appropriate data when switching
         if (tabId === 'tab-weekly') renderWeekly();
         if (tabId === 'tab-monthly') renderMonthly();
     }
@@ -824,7 +776,7 @@
             const task = row.querySelector('.input-task').value.trim();
             const status = row.querySelector('.input-status').value;
 
-            // Added check to exclude "Refurbished and Back Market Pricing" from the AI prompt
+            // Exclude Refurb task from AI prompt
             if (isIncluded && task && status === 'Done' && task !== "Refurbished and Back Market Pricing") {
                 completedTasksList.push(`- ${task}`);
             }
@@ -877,38 +829,41 @@
     // ==========================================
 
     function initApp() {
-        // Set date pickers defaults
         const todayStr = getLocalDateString(new Date());
         document.getElementById('daily-date-picker').value = todayStr;
         
-        // Init Logo
         const savedLogo = localStorage.getItem('mobiHubLogo');
         if (savedLogo) applyLogo(savedLogo);
 
-        // Load today's form
+        populateRecommendedTasks();
         loadFormForDate();
         
-        // Init weekly picker to current week
         const d = new Date();
         const year = d.getFullYear();
-        // Calculate week number roughly
         const start = new Date(year, 0, 1);
         const days = Math.floor((d - start) / (24 * 60 * 60 * 1000));
         const weekNum = Math.ceil((d.getDay() + 1 + days) / 7);
         document.getElementById('week-selector').value = `${year}-W${weekNum.toString().padStart(2, '0')}`;
-
-        // Init monthly picker to current month
         document.getElementById('month-selector').value = todayStr.substring(0, 7);
 
-        // Initialize drag-and-drop sortable list
+        // Sortable Drag and Drop init
         new Sortable(document.getElementById('task-tbody'), {
-            handle: '.drag-handle', // Restricts drag start to the handle element
-            animation: 150,         // Smooth animation speed
-            ghostClass: 'sortable-ghost', // Class for drop placeholder
+            handle: '.drag-handle', 
+            animation: 150,         
+            ghostClass: 'sortable-ghost',
             onEnd: function() {
-                // When dragging ends, save the new order and rebuild the visual report immediately
                 generateReport(true);
             }
+        });
+    }
+
+    function populateRecommendedTasks() {
+        const dropdown = document.getElementById('recommended-tasks-dropdown');
+        recommendedTasksList.forEach(task => {
+            const option = document.createElement('option');
+            option.value = task;
+            option.innerText = task;
+            dropdown.appendChild(option);
         });
     }
 
@@ -922,7 +877,6 @@
         let dayData = history[selectedDate];
 
         if (dayData && dayData.data) {
-            // Load from history
             dayData.data.forEach((item) => {
                 let intVal = item.intensity !== undefined ? item.intensity : 1;
                 tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
@@ -930,7 +884,6 @@
             notesInput.value = dayData.notes || '';
         } else {
             notesInput.value = '';
-            // Check legacy `mobiHubTasks` or load default if strictly today
             const todayStr = getLocalDateString(new Date());
             const legacyData = localStorage.getItem('mobiHubTasks');
             
@@ -941,7 +894,6 @@
                     tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
                 });
             } else {
-                // Load defaults
                 defaultTasks.forEach((taskName) => {
                     tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
                 });
@@ -980,6 +932,21 @@
     function addCustomTask() {
         const tbody = document.getElementById('task-tbody');
         tbody.appendChild(createRowHTML('', 'Done', true, 1));
+        generateReport(true);
+    }
+
+    function addRecommendedTask() {
+        const dropdown = document.getElementById('recommended-tasks-dropdown');
+        const taskName = dropdown.value;
+        
+        if (!taskName) {
+            showMessageModal("Please select a task from the list first.");
+            return;
+        }
+
+        const tbody = document.getElementById('task-tbody');
+        tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
+        dropdown.value = "";
         generateReport(true);
     }
 
@@ -1065,7 +1032,6 @@
             reportTbody.appendChild(tr);
         });
 
-        // Update UI
         document.getElementById('report-date-display').innerText = formatReadableDate(selectedDate);
         document.getElementById('stat-completed').innerText = `${completedTasks} / ${totalTasks}`;
         document.getElementById('stat-intensity').innerText = totalIntensityScore;
@@ -1079,7 +1045,6 @@
             notesContainer.style.display = 'none';
         }
 
-        // Auto-Save to Global History using selected date
         let history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         history[selectedDate] = {
             date: selectedDate,
@@ -1089,7 +1054,6 @@
         };
         localStorage.setItem('mobiHubHistory', JSON.stringify(history));
 
-        // For backwards compatibility
         if (selectedDate === getLocalDateString(new Date())) {
             localStorage.setItem('mobiHubTasks', JSON.stringify(dataToSave));
         }
@@ -1103,12 +1067,10 @@
     // ==========================================
 
     function getDatesOfWeek(weekString) {
-        // weekString format: "2026-W15"
         if (!weekString) return [];
         const year = parseInt(weekString.substring(0, 4));
         const week = parseInt(weekString.substring(6, 8));
         
-        // Approach to get Monday of that ISO week
         const simple = new Date(year, 0, 1 + (week - 1) * 7);
         const dow = simple.getDay();
         const ISOweekStart = simple;
@@ -1118,7 +1080,7 @@
             ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
             
         let dates = [];
-        for (let i = 0; i < 5; i++) { // Mon to Fri
+        for (let i = 0; i < 5; i++) { 
             let d = new Date(ISOweekStart);
             d.setDate(ISOweekStart.getDate() + i);
             dates.push(getLocalDateString(d));
@@ -1130,10 +1092,9 @@
         const weekVal = document.getElementById('week-selector').value;
         if (!weekVal) return;
         
-        const dates = getDatesOfWeek(weekVal); // Array of 5 YYYY-MM-DD
+        const dates = getDatesOfWeek(weekVal); 
         const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         
-        // Update headers with actual short dates
         const thead = document.getElementById('weekly-table-header');
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         for (let i=0; i<5; i++) {
@@ -1144,8 +1105,7 @@
         
         document.getElementById('weekly-date-range').innerText = `${formatReadableDate(dates[0])} to ${formatReadableDate(dates[4])}`;
 
-        // Aggregate unique tasks that were included at least once
-        let uniqueTasksMap = new Map(); // taskName -> isRefurbTask
+        let uniqueTasksMap = new Map(); 
         
         dates.forEach(dStr => {
             const dayRecord = history[dStr];
@@ -1196,7 +1156,6 @@
             tbody.appendChild(tr);
         });
 
-        // If no data
         if (uniqueTasksMap.size === 0) {
             tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
         }
@@ -1211,26 +1170,23 @@
     // ==========================================
 
     function renderMonthly() {
-        const monthVal = document.getElementById('month-selector').value; // "YYYY-MM"
+        const monthVal = document.getElementById('month-selector').value; 
         if (!monthVal) return;
 
         const history = JSON.parse(localStorage.getItem('mobiHubHistory') || '{}');
         
         const year = parseInt(monthVal.split('-')[0]);
-        const month = parseInt(monthVal.split('-')[1]) - 1; // 0-indexed
+        const month = parseInt(monthVal.split('-')[1]) - 1; 
         
         const d = new Date(year, month, 1);
         const monthName = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         document.getElementById('monthly-date-range').innerText = monthName;
 
-        // Group history by Week of the month
-        // Just extract all dates in history that match YYYY-MM
         let activeDates = Object.keys(history).filter(dateStr => dateStr.startsWith(monthVal)).sort();
         
         let grandCompleted = 0;
         let grandIntensity = 0;
 
-        // Group by weeks roughly based on ISO week
         let weeksMap = {};
         
         activeDates.forEach(dateStr => {
@@ -1259,7 +1215,7 @@
         weekKeys.forEach(wk => {
             const wData = weeksMap[wk];
             wData.dates.sort();
-            const minDate = formatReadableDate(wData.dates[0]).split(',')[1].trim(); // just Month Day
+            const minDate = formatReadableDate(wData.dates[0]).split(',')[1].trim(); 
             const maxDate = formatReadableDate(wData.dates[wData.dates.length-1]).split(',')[1].trim();
             
             const tr = document.createElement('tr');
@@ -1284,21 +1240,29 @@
 
 
     // ==========================================
-    // EXPORT UTILITIES
+    // EXPORT UTILITIES (Optimized for Canvas)
     // ==========================================
+
+    function getRenderCanvas(elementId) {
+        const postcard = document.getElementById(elementId);
+        // Add a class that strips outer 3D borders so the export image is tight and clean
+        postcard.classList.add('exporting');
+        
+        return html2canvas(postcard, {
+            scale: 2, 
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        }).finally(() => {
+            postcard.classList.remove('exporting');
+        });
+    }
 
     function downloadPNG(elementId, filenamePrefix, btnElement) {
         const originalText = btnElement.innerText;
         btnElement.innerText = '⏳ Generating...';
         btnElement.disabled = true;
 
-        const postcard = document.getElementById(elementId);
-
-        html2canvas(postcard, {
-            scale: 2, 
-            useCORS: true,
-            backgroundColor: '#ffffff'
-        }).then(canvas => {
+        getRenderCanvas(elementId).then(canvas => {
             const link = document.createElement('a');
             const dateStr = new Date().toISOString().split('T')[0];
             link.download = `MobiHub_${filenamePrefix}_Deepak_${dateStr}.png`;
@@ -1317,17 +1281,12 @@
 
     function copyImage(elementId, btnElement) {
         const originalText = btnElement.innerText;
-        btnElement.innerText = '⏳ Processing...';
+        btnElement.innerText = '⏳ Preparing...';
         btnElement.disabled = true;
 
-        const postcard = document.getElementById(elementId);
-
-        html2canvas(postcard, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: '#ffffff'
-        }).then(canvas => {
-            // Render the image into the modal as a fallback to strict iframe clipboard permissions
+        getRenderCanvas(elementId).then(canvas => {
+            // Because silent background copying throws a security error inside this window 
+            // format, immediately spawn our native-feel modal so the user can grab it.
             const imgData = canvas.toDataURL('image/png');
             showImageModal(imgData);
             
