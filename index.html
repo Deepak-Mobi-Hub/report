@@ -193,7 +193,7 @@
         .matrix-check { color: var(--primary-color); font-weight: bold; font-size: 15px; }
 
         /* Input Styles */
-        input[type="text"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select, textarea {
+        input[type="text"], input[type="email"], input[type="number"], input[type="date"], input[type="week"], input[type="month"], select, textarea {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #cbd5e1;
@@ -207,14 +207,13 @@
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
-        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+        input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary-color);
             background: #ffffff;
             box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
         }
         
-        .input-intensity { font-size: 16px !important; font-weight: 600; padding: 10px 8px !important; }
         input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
 
         /* Button Styles */
@@ -340,6 +339,7 @@
             .btn { width: 100%; }
             .postcard { width: 100%; padding: 20px; min-width: auto; }
             .tabs-container { flex-direction: column; }
+            .profile-inputs { flex-direction: column; }
         }
     </style>
 </head>
@@ -362,14 +362,25 @@
             <div class="left-panel">
                 <div class="card" id="input-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main);">Select & Edit Tasks</h2>
+                        <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-main);">Settings & Tasks</h2>
                         <div style="display: flex; gap: 8px;">
                             <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
                             <button class="btn btn-secondary" onclick="document.getElementById('logo-upload').click()" style="font-size: 12px; padding: 6px 12px; box-shadow: 0 2px 0 var(--border-color);">📷 Logo</button>
-                            <button class="btn btn-danger" onclick="resetToDefault()" style="font-size: 12px; padding: 6px 12px; box-shadow: 0 2px 0 #b91c1c;">Reset</button>
+                            <button class="btn btn-danger" onclick="resetToDefault()" style="font-size: 12px; padding: 6px 12px; box-shadow: 0 2px 0 #b91c1c;">Reset Tasks</button>
                         </div>
                     </div>
                     
+                    <div class="profile-inputs" style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Name:</label>
+                            <input type="text" id="user-name" oninput="saveProfile()" placeholder="Enter your name">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Email:</label>
+                            <input type="email" id="user-email" oninput="saveProfile()" placeholder="Enter your email">
+                        </div>
+                    </div>
+
                     <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
                         <label style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Editing Date:</label>
                         <input type="date" id="daily-date-picker" onchange="loadFormForDate()" style="width: auto; padding: 6px 10px;">
@@ -380,8 +391,7 @@
                             <tr>
                                 <th style="width: 5%; text-align: center;"></th>
                                 <th style="width: 5%; text-align: center;">✓</th>
-                                <th style="width: 40%;">Task</th>
-                                <th style="width: 20%; text-align: center;">Int.</th>
+                                <th style="width: 60%;">Task</th>
                                 <th style="width: 30%;">Status</th>
                             </tr>
                         </thead>
@@ -428,7 +438,8 @@
                                 <span class="brand-subtitle">Daily Output Report</span>
                             </div>
                             <div class="meta-info">
-                                <p>Name: <strong>Deepak</strong></p>
+                                <p>Name: <strong class="display-name"></strong></p>
+                                <p class="email-container" style="display: none;">Email: <strong class="display-email"></strong></p>
                                 <p>Date: <strong id="report-date-display"></strong></p>
                             </div>
                         </div>
@@ -438,17 +449,12 @@
                                 <div class="stat-value" id="stat-completed">0/0</div>
                                 <div class="stat-label">Tasks Completed</div>
                             </div>
-                            <div class="stat-card">
-                                <div class="stat-value" id="stat-intensity">0</div>
-                                <div class="stat-label">Score (Completed)</div>
-                            </div>
                         </div>
 
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 55%;">Task Details</th>
-                                    <th style="width: 15%; text-align: center;">Int.</th>
+                                    <th style="width: 70%;">Task Details</th>
                                     <th style="width: 30%; text-align: right;">Status</th>
                                 </tr>
                             </thead>
@@ -489,7 +495,8 @@
                         <span class="brand-subtitle">Weekly Summary Report</span>
                     </div>
                     <div class="meta-info">
-                        <p>Name: <strong>Deepak</strong></p>
+                        <p>Name: <strong class="display-name"></strong></p>
+                        <p class="email-container" style="display: none;">Email: <strong class="display-email"></strong></p>
                         <p>Week: <strong id="weekly-date-range"></strong></p>
                     </div>
                 </div>
@@ -499,22 +506,17 @@
                         <div class="stat-value" id="weekly-stat-completed">0</div>
                         <div class="stat-label">Total Tasks (Mon-Fri)</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="weekly-stat-intensity">0</div>
-                        <div class="stat-label">Total Weekly Score</div>
-                    </div>
                 </div>
 
                 <table class="report-table matrix-table">
                     <thead>
                         <tr id="weekly-table-header">
-                            <th style="width: 40%;">Task Details</th>
+                            <th style="width: 50%;">Task Details</th>
                             <th style="width: 10%;">Mon</th>
                             <th style="width: 10%;">Tue</th>
                             <th style="width: 10%;">Wed</th>
                             <th style="width: 10%;">Thu</th>
                             <th style="width: 10%;">Fri</th>
-                            <th style="width: 10%;">Total</th>
                         </tr>
                     </thead>
                     <tbody id="weekly-tbody">
@@ -547,7 +549,8 @@
                         <span class="brand-subtitle">Monthly Overview Report</span>
                     </div>
                     <div class="meta-info">
-                        <p>Name: <strong>Deepak</strong></p>
+                        <p>Name: <strong class="display-name"></strong></p>
+                        <p class="email-container" style="display: none;">Email: <strong class="display-email"></strong></p>
                         <p>Month: <strong id="monthly-date-range"></strong></p>
                     </div>
                 </div>
@@ -557,18 +560,13 @@
                         <div class="stat-value" id="monthly-stat-completed">0</div>
                         <div class="stat-label">Total Tasks Completed</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="monthly-stat-intensity">0</div>
-                        <div class="stat-label">Total Monthly Score</div>
-                    </div>
                 </div>
 
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th style="width: 40%;">Week Period</th>
-                            <th style="width: 30%; text-align: center;">Tasks Completed</th>
-                            <th style="width: 30%; text-align: right;">Intensity Score</th>
+                            <th style="width: 50%;">Week Period</th>
+                            <th style="width: 50%; text-align: center;">Tasks Completed</th>
                         </tr>
                     </thead>
                     <tbody id="monthly-tbody">
@@ -581,18 +579,21 @@
 
 </div>
 
-<!-- Modal for Copy Image (Fallback) -->
+<!-- Modal for Copy Image -->
 <div id="image-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; backdrop-filter: blur(4px);">
     <div style="background: var(--bg-color); padding: 20px; border-radius: 4px; max-width: 100%; max-height: 95%; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
         <div style="display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center; gap: 20px; background: white; padding: 12px 16px; border-radius: 4px; border: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 24px;">📸</span>
                 <div>
-                    <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Automatic Copy Blocked</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">Right-click (or long-press) the image below and select <strong>"Copy image"</strong></p>
+                    <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Image Ready!</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">Click the button to copy to your clipboard.</p>
                 </div>
             </div>
-            <button onclick="closeImageModal()" class="btn btn-secondary" style="padding: 6px 16px; margin: 0; box-shadow: 0 2px 0 var(--border-color);">Close</button>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="copyModalImage()" id="modal-copy-btn" class="btn btn-primary" style="padding: 6px 16px; margin: 0; box-shadow: 0 2px 0 #047857;">📋 Copy Image</button>
+                <button onclick="closeImageModal()" class="btn btn-secondary" style="padding: 6px 16px; margin: 0; box-shadow: 0 2px 0 var(--border-color);">Close</button>
+            </div>
         </div>
         <div style="overflow: auto; display: flex; justify-content: center; background: transparent;">
             <img id="modal-image-preview" style="max-width: 100%; height: auto; border-radius: 2px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
@@ -732,6 +733,37 @@
         });
     }
 
+    // User Profile Logic
+    function loadProfile() {
+        const profileStr = localStorage.getItem('mobiHubProfile');
+        let profile = { name: '', email: '' };
+        if (profileStr) {
+            try { profile = JSON.parse(profileStr); } catch (e) {}
+        }
+        document.getElementById('user-name').value = profile.name || '';
+        document.getElementById('user-email').value = profile.email || '';
+        updateProfileDisplays();
+    }
+
+    function saveProfile() {
+        const name = document.getElementById('user-name').value;
+        const email = document.getElementById('user-email').value;
+        localStorage.setItem('mobiHubProfile', JSON.stringify({ name, email }));
+        updateProfileDisplays();
+    }
+
+    function updateProfileDisplays() {
+        const name = document.getElementById('user-name').value || 'Unknown User';
+        const email = document.getElementById('user-email').value;
+        
+        document.querySelectorAll('.display-name').forEach(el => el.innerText = name);
+        document.querySelectorAll('.display-email').forEach(el => el.innerText = email);
+        
+        document.querySelectorAll('.email-container').forEach(el => {
+            el.style.display = email ? 'block' : 'none';
+        });
+    }
+
     // Custom Modal Functions
     function showMessageModal(text) {
         document.getElementById('message-modal-text').innerText = text;
@@ -834,6 +866,7 @@
         const savedLogo = localStorage.getItem('mobiHubLogo');
         if (savedLogo) applyLogo(savedLogo);
 
+        loadProfile();
         populateRecommendedTasks();
         loadFormForDate();
         
@@ -877,8 +910,7 @@
 
         if (dayData && dayData.data) {
             dayData.data.forEach((item) => {
-                let intVal = item.intensity !== undefined ? item.intensity : 1;
-                tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
+                tbody.appendChild(createRowHTML(item.task, item.status, item.included));
             });
             notesInput.value = dayData.notes || '';
         } else {
@@ -889,12 +921,11 @@
             if (selectedDate === todayStr && legacyData) {
                 const tasks = JSON.parse(legacyData);
                 tasks.forEach((item) => {
-                    let intVal = item.intensity !== undefined ? item.intensity : 1;
-                    tbody.appendChild(createRowHTML(item.task, item.status, item.included, intVal));
+                    tbody.appendChild(createRowHTML(item.task, item.status, item.included));
                 });
             } else {
                 defaultTasks.forEach((taskName) => {
-                    tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
+                    tbody.appendChild(createRowHTML(taskName, 'Done', true));
                 });
             }
         }
@@ -902,7 +933,7 @@
         generateReport(false); 
     }
 
-    function createRowHTML(taskName = '', status = 'Done', included = true, intensity = 1) {
+    function createRowHTML(taskName = '', status = 'Done', included = true) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="text-align: center; vertical-align: middle;" class="drag-handle" title="Drag to reorder">
@@ -913,9 +944,6 @@
             </td>
             <td>
                 <input type="text" class="input-task" value="${taskName}" placeholder="Enter task..." oninput="generateReport(true)">
-            </td>
-            <td>
-                <input type="number" class="input-intensity" value="${intensity}" min="0" oninput="generateReport(true)" style="text-align: center;">
             </td>
             <td>
                 <select class="input-status" onchange="generateReport(true)">
@@ -930,7 +958,7 @@
 
     function addCustomTask() {
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML('', 'Done', true, 1));
+        tbody.appendChild(createRowHTML('', 'Done', true));
         generateReport(true);
     }
 
@@ -944,7 +972,7 @@
         }
 
         const tbody = document.getElementById('task-tbody');
-        tbody.appendChild(createRowHTML(taskName, 'Done', true, 1));
+        tbody.appendChild(createRowHTML(taskName, 'Done', true));
         dropdown.value = "";
         generateReport(true);
     }
@@ -975,31 +1003,19 @@
 
         let totalTasks = 0;
         let completedTasks = 0;
-        let totalIntensityScore = 0;
         let dataToSave = [];
 
         rows.forEach(row => {
             const isIncluded = row.querySelector('.task-include').checked;
             const task = row.querySelector('.input-task').value;
             const status = row.querySelector('.input-status').value;
-            const intensityInput = row.querySelector('.input-intensity');
             
             const trimmedTask = task.trim();
-            const isRefurbTask = trimmedTask === "Refurbished and Back Market Pricing";
-            
-            if (isRefurbTask) {
-                intensityInput.style.visibility = 'hidden';
-            } else {
-                intensityInput.style.visibility = 'visible';
-            }
-
-            const intensity = isRefurbTask ? 0 : (parseInt(intensityInput.value) || 0);
 
             dataToSave.push({
                 task: task,
                 status: status,
-                included: isIncluded,
-                intensity: intensityInput.value 
+                included: isIncluded
             });
 
             if (!isIncluded || !trimmedTask) return; 
@@ -1007,7 +1023,6 @@
 
             if (status === 'Done') {
                 completedTasks++;
-                totalIntensityScore += intensity;
             }
 
             let badgeClass = '';
@@ -1016,14 +1031,11 @@
             else if (status === 'Pending') { badgeClass = 'badge-pending'; } 
             else if (status === 'In Progress') { badgeClass = 'badge-progress'; }
 
-            const reportIntensityDisplay = isRefurbTask ? '<span class="matrix-check">✓</span>' : intensity;
-
             const tr = document.createElement('tr');
             if(rowClass) tr.classList.add(rowClass);
             
             tr.innerHTML = `
                 <td><div class="task-name-display">${trimmedTask}</div></td>
-                <td style="text-align: center; font-weight: 600;">${reportIntensityDisplay}</td>
                 <td style="text-align: right;">
                     <span class="badge ${badgeClass}">${status}</span>
                 </td>
@@ -1033,7 +1045,6 @@
 
         document.getElementById('report-date-display').innerText = formatReadableDate(selectedDate);
         document.getElementById('stat-completed').innerText = `${completedTasks} / ${totalTasks}`;
-        document.getElementById('stat-intensity').innerText = totalIntensityScore;
 
         const notesContainer = document.getElementById('report-notes-container');
         const notesDisplay = document.getElementById('report-notes-display');
@@ -1048,7 +1059,7 @@
         history[selectedDate] = {
             date: selectedDate,
             data: dataToSave,
-            stats: { total: totalTasks, completed: completedTasks, intensity: totalIntensityScore },
+            stats: { total: totalTasks, completed: completedTasks },
             notes: notesVal
         };
         localStorage.setItem('mobiHubHistory', JSON.stringify(history));
@@ -1112,7 +1123,7 @@
                 dayRecord.data.forEach(item => {
                     if (item.included && item.task.trim() !== '') {
                         const t = item.task.trim();
-                        uniqueTasksMap.set(t, t === "Refurbished and Back Market Pricing");
+                        uniqueTasksMap.set(t, true);
                     }
                 });
             }
@@ -1122,11 +1133,9 @@
         tbody.innerHTML = '';
         
         let grandTotalCompleted = 0;
-        let grandTotalIntensity = 0;
 
-        uniqueTasksMap.forEach((isRefurb, taskName) => {
+        uniqueTasksMap.forEach((_, taskName) => {
             const tr = document.createElement('tr');
-            let rowTotalInt = 0;
             
             let html = `<td><div class="task-name-display">${taskName}</div></td>`;
             
@@ -1137,30 +1146,21 @@
                     const taskItem = dayRecord.data.find(t => t.task.trim() === taskName && t.included);
                     if (taskItem && taskItem.status === 'Done') {
                         grandTotalCompleted++;
-                        if (isRefurb) {
-                            cellHtml = `<span class="matrix-check">✓</span>`;
-                        } else {
-                            const intVal = parseInt(taskItem.intensity) || 0;
-                            cellHtml = `<span class="matrix-check" style="color: var(--primary-color)">${intVal}</span>`;
-                            rowTotalInt += intVal;
-                            grandTotalIntensity += intVal;
-                        }
+                        cellHtml = `<span class="matrix-check">✓</span>`;
                     }
                 }
                 html += `<td>${cellHtml}</td>`;
             });
             
-            html += `<td style="font-weight: 600;">${isRefurb ? '-' : rowTotalInt}</td>`;
             tr.innerHTML = html;
             tbody.appendChild(tr);
         });
 
         if (uniqueTasksMap.size === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded tasks for this week.</td></tr>`;
         }
 
         document.getElementById('weekly-stat-completed').innerText = grandTotalCompleted;
-        document.getElementById('weekly-stat-intensity').innerText = grandTotalIntensity;
     }
 
 
@@ -1184,7 +1184,6 @@
         let activeDates = Object.keys(history).filter(dateStr => dateStr.startsWith(monthVal)).sort();
         
         let grandCompleted = 0;
-        let grandIntensity = 0;
 
         let weeksMap = {};
         
@@ -1196,14 +1195,12 @@
             
             const weekLabel = `Week ${weekNum}`;
             if (!weeksMap[weekLabel]) {
-                weeksMap[weekLabel] = { count: 0, completed: 0, intensity: 0, dates: [] };
+                weeksMap[weekLabel] = { count: 0, completed: 0, dates: [] };
             }
             weeksMap[weekLabel].dates.push(dateStr);
             weeksMap[weekLabel].completed += history[dateStr].stats.completed || 0;
-            weeksMap[weekLabel].intensity += history[dateStr].stats.intensity || 0;
             
             grandCompleted += history[dateStr].stats.completed || 0;
-            grandIntensity += history[dateStr].stats.intensity || 0;
         });
 
         const tbody = document.getElementById('monthly-tbody');
@@ -1224,17 +1221,15 @@
                     <div style="font-size: 11px; color: var(--text-muted);">${minDate} - ${maxDate}</div>
                 </td>
                 <td style="text-align: center; font-weight: 500;">${wData.completed}</td>
-                <td style="text-align: right; font-weight: 600; color: var(--primary-color);">${wData.intensity}</td>
             `;
             tbody.appendChild(tr);
         });
 
         if (weekKeys.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded data for this month.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 20px; color: var(--text-muted);">No recorded data for this month.</td></tr>`;
         }
 
         document.getElementById('monthly-stat-completed').innerText = grandCompleted;
-        document.getElementById('monthly-stat-intensity').innerText = grandIntensity;
     }
 
 
@@ -1244,7 +1239,6 @@
 
     function getRenderCanvas(elementId) {
         const postcard = document.getElementById(elementId);
-        // Add a class that strips outer 3D borders so the export image is tight and clean
         postcard.classList.add('exporting');
         
         return html2canvas(postcard, {
@@ -1264,7 +1258,8 @@
         getRenderCanvas(elementId).then(canvas => {
             const link = document.createElement('a');
             const dateStr = new Date().toISOString().split('T')[0];
-            link.download = `MobiHub_${filenamePrefix}_Deepak_${dateStr}.png`;
+            const userName = document.getElementById('user-name').value.trim() || 'User';
+            link.download = `MobiHub_${filenamePrefix}_${userName}_${dateStr}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
 
@@ -1280,49 +1275,54 @@
 
     function copyImage(elementId, btnElement) {
         const originalText = btnElement.innerText;
-        btnElement.innerText = '⏳ Copying...';
+        btnElement.innerText = '⏳ Preparing...';
         btnElement.disabled = true;
 
         getRenderCanvas(elementId).then(canvas => {
-            // Convert to Blob and use modern Clipboard API
-            canvas.toBlob(blob => {
-                try {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    navigator.clipboard.write([item]).then(() => {
-                        btnElement.innerText = '✅ Copied to Clipboard!';
-                        setTimeout(() => { 
-                            btnElement.innerText = originalText; 
-                            btnElement.disabled = false; 
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('Clipboard write error:', err);
-                        // Fallback: If blocked by security policy (like in an iframe sandbox), show the modal
-                        const imgData = canvas.toDataURL('image/png');
-                        showImageModal(imgData);
-                        btnElement.innerText = '⚠️ Use Modal';
-                        setTimeout(() => { 
-                            btnElement.innerText = originalText; 
-                            btnElement.disabled = false; 
-                        }, 2000);
-                    });
-                } catch (err) {
-                    console.error('ClipboardItem not supported:', err);
-                    // Fallback to modal for unsupported browsers
-                    const imgData = canvas.toDataURL('image/png');
-                    showImageModal(imgData);
-                    btnElement.innerText = '⚠️ Use Modal';
-                    setTimeout(() => { 
-                        btnElement.innerText = originalText; 
-                        btnElement.disabled = false; 
-                    }, 2000);
-                }
-            }, 'image/png');
+            const imgDataUrl = canvas.toDataURL('image/png');
+            showImageModal(imgDataUrl);
+            
+            btnElement.innerText = '✅ Ready!';
+            setTimeout(() => { 
+                btnElement.innerText = originalText; 
+                btnElement.disabled = false; 
+            }, 2000);
         }).catch(err => {
-            console.error('Error generating image for copy:', err);
+            console.error('Error preparing image for copy:', err);
             showMessageModal('Failed to process image. Please try again.');
             btnElement.innerText = originalText;
             btnElement.disabled = false;
         });
+    }
+
+    async function copyModalImage() {
+        const btn = document.getElementById('modal-copy-btn');
+        const originalText = btn.innerText;
+        btn.innerText = '⏳ Copying...';
+        btn.disabled = true;
+
+        try {
+            const imgDataUrl = document.getElementById('modal-image-preview').src;
+            const response = await fetch(imgDataUrl);
+            const blob = await response.blob();
+            
+            const item = new ClipboardItem({ 'image/png': blob });
+            await navigator.clipboard.write([item]);
+            
+            btn.innerText = '✅ Copied!';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+        } catch (err) {
+            console.error('Modal copy failed:', err);
+            btn.innerText = '❌ Failed';
+            showMessageModal('Unable to copy directly due to browser security settings. Please right-click or long-press the image to copy.');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
     }
 
     // Initialize application on load
